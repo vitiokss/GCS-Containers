@@ -69,6 +69,7 @@ namespace MissionPlanner
             public Image connect = global::MissionPlanner.Properties.Resources.light_connect_icon;
             public Image disconnect = global::MissionPlanner.Properties.Resources.light_disconnect_icon;
             public Image bg = global::MissionPlanner.Properties.Resources.bgdark;
+            public Image container = global::MissionPlanner.Properties.Resources.containers;
         }
 
         public class menuicons2 : menuicons
@@ -788,6 +789,11 @@ namespace MissionPlanner
         private void MenuTerminal_Click(object sender, EventArgs e)
         {
             MyView.ShowScreen("Terminal");
+        }
+
+        private void MenuContainer_Click(object sender, EventArgs e)
+        {
+            MyView.ShowScreen("Containers");
         }
 
         private void doDisconnect()
@@ -2043,6 +2049,7 @@ namespace MissionPlanner
             MyView.AddScreen(new MainSwitcher.Screen("Simulation", Simulation, true));
             MyView.AddScreen(new MainSwitcher.Screen("Terminal", new GCSViews.Terminal(), false));
             MyView.AddScreen(new MainSwitcher.Screen("Help", new GCSViews.Help(), false));
+            MyView.AddScreen(new MainSwitcher.Screen("Containers", new GCSViews.ContainersView(), false));
 
             // init button depressed - ensures correct action
             //int fixme;

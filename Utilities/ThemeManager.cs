@@ -95,6 +95,7 @@ namespace MissionPlanner.Utilities
             temp.Add(new GCSViews.Simulation());
             temp.Add(new GCSViews.SoftwareConfig());
             temp.Add(new GCSViews.Terminal());
+            temp.Add(new GCSViews.ContainersView());
 
             temp.Add(new ConnectionControl());
             temp.Add(new ConnectionStats());

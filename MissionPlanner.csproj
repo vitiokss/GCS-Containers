@@ -142,6 +142,9 @@
     <Reference Include="DotSpatial.Topology">
       <HintPath>packages\DotSpatial.Topology.1.6.0.0\lib\net40-Client\DotSpatial.Topology.dll</HintPath>
     </Reference>
+    <Reference Include="GOTSDK">
+      <HintPath>ExtLibs\GOTSDK.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
@@ -162,6 +165,7 @@
     <Reference Include="ObjectListView">
       <HintPath>packages\Unofficial.ObjectListView.2.6.0\lib\net20\ObjectListView.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="protobuf-net">
       <HintPath>packages\protobuf-net.2.0.0.668\lib\net40\protobuf-net.dll</HintPath>
     </Reference>
@@ -264,6 +268,12 @@
     <Compile Include="CodeGen.cs" />
     <Compile Include="Comms\CommsSerialScan.cs" />
     <Compile Include="Comms\MAVLinkSerialPort.cs" />
+    <Compile Include="Containers\ContainerData.cs" />
+    <Compile Include="Containers\dbContainersDataSet.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>dbContainersDataSet.xsd</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ConnectionControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -380,11 +390,36 @@
     <Compile Include="GCSViews\ConfigurationView\ConfigWizard.Designer.cs">
       <DependentUpon>ConfigWizard.cs</DependentUpon>
     </Compile>
+    <Compile Include="GCSViews\ContainersView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GCSViews\ContainersView.Designer.cs">
+      <DependentUpon>ContainersView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GCSViews\Container\BaysMap.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GCSViews\Container\BaysMap.Designer.cs">
+      <DependentUpon>BaysMap.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GCSViews\Container\ContainerItem.cs" />
+    <Compile Include="GCSViews\Container\ContainerMap.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GCSViews\Container\ContainerMap.Designer.cs">
+      <DependentUpon>ContainerMap.cs</DependentUpon>
+    </Compile>
     <Compile Include="GCSViews\FlightData2.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="GCSViews\FlightData2.Designer.cs">
       <DependentUpon>FlightData2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GCSViews\GOT\GOTCalibrateForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GCSViews\GOT\GOTCalibrateForm.Designer.cs">
+      <DependentUpon>GOTCalibrateForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Joystick\Joy_Do_Repeat_Servo.cs">
       <SubType>Form</SubType>
@@ -547,6 +582,11 @@
       <DependentUpon>PluginUI.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\ConfigCameraStabModel.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="ScriptConsole.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -837,6 +877,15 @@
     <EmbeddedResource Include="GCSViews\ConfigurationView\ConfigTradHeli.zh-TW.resx">
       <DependentUpon>ConfigTradHeli.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="GCSViews\ContainersView.resx">
+      <DependentUpon>ContainersView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GCSViews\Container\BaysMap.resx">
+      <DependentUpon>BaysMap.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GCSViews\Container\ContainerMap.resx">
+      <DependentUpon>ContainerMap.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GCSViews\FlightData.zh-Hant.resx">
       <DependentUpon>FlightData.cs</DependentUpon>
     </EmbeddedResource>
@@ -851,6 +900,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GCSViews\FlightPlanner.zh-TW.resx">
       <DependentUpon>FlightPlanner.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GCSViews\GOT\GOTCalibrateForm.resx">
+      <DependentUpon>GOTCalibrateForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GCSViews\Help.zh-Hant.resx">
       <DependentUpon>Help.cs</DependentUpon>
@@ -1123,6 +1175,17 @@
     </None>
     <None Include="airports.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Containers\dbContainersDataSet.xsc">
+      <DependentUpon>dbContainersDataSet.xsd</DependentUpon>
+    </None>
+    <None Include="Containers\dbContainersDataSet.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>dbContainersDataSet.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Containers\dbContainersDataSet.xss">
+      <DependentUpon>dbContainersDataSet.xsd</DependentUpon>
     </None>
     <None Include="Drivers\amd64\ftd2xx.lib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -1956,6 +2019,10 @@
     </Compile>
     <None Include="Properties\DataSources\MissionPlanner.GCSViews.InitialSetup.datasource" />
     <None Include="Properties\DataSources\MissionPlanner.GCSViews.SoftwareConfig.datasource" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
     <None Include="README.md" />
     <Compile Include="Splash.cs">
       <SubType>Form</SubType>
@@ -2783,6 +2850,13 @@
     <None Include="Drivers\px4fmu.inf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="Containers\dbContainers.mdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Containers\dbContainers_log.ldf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <DependentUpon>dbContainers.mdf</DependentUpon>
+    </Content>
     <Content Include="Drivers\amd64\ftbusui.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -6317,6 +6391,7 @@
     <None Include="Resources\calibration06.jpg" />
     <None Include="Resources\calibration07.jpg" />
     <None Include="Resources\FW icons Y6.png" />
+    <None Include="Resources\containers.png" />
     <Content Include="Resources\guagebg.jpg" />
     <None Include="Resources\Hframe.png" />
     <None Include="Resources\Hframelight.png" />
@@ -6558,6 +6633,7 @@
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
