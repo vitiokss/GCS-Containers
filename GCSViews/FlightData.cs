@@ -1181,7 +1181,7 @@ namespace MissionPlanner.GCSViews
                         }
                         catch { }
 
-                        lock (MainV2.instance.adsbPlanes)
+                        lock (MainV2.instance.adsblock)
                         {
                             for (int a = (routes.Markers.Count - 1); a >= 0; a--)
                             {
@@ -1495,6 +1495,7 @@ namespace MissionPlanner.GCSViews
 
             GMapRoute wppath = new GMapRoute("wp path");
             wppath.Stroke = new Pen(Color.Yellow, 4);
+            wppath.Stroke.DashStyle = DashStyle.Custom;
 
             for (int a = 1; a < polygonPoints.Count; a++)
             {
