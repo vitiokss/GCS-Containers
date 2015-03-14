@@ -269,11 +269,6 @@
     <Compile Include="Comms\CommsSerialScan.cs" />
     <Compile Include="Comms\MAVLinkSerialPort.cs" />
     <Compile Include="Containers\ContainerData.cs" />
-    <Compile Include="Containers\dbContainersDataSet.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>dbContainersDataSet.xsd</DependentUpon>
-    </Compile>
     <Compile Include="Controls\ConnectionControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -396,19 +391,25 @@
     <Compile Include="GCSViews\ContainersView.Designer.cs">
       <DependentUpon>ContainersView.cs</DependentUpon>
     </Compile>
-    <Compile Include="GCSViews\Container\BaysMap.cs">
+    <Compile Include="Containers\Bay.cs" />
+    <Compile Include="GCSViews\Containers\BaysMap.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="GCSViews\Container\BaysMap.Designer.cs">
+    <Compile Include="GCSViews\Containers\BaysMap.Designer.cs">
       <DependentUpon>BaysMap.cs</DependentUpon>
     </Compile>
-    <Compile Include="GCSViews\Container\ContainerItem.cs" />
-    <Compile Include="GCSViews\Container\ContainerMap.cs">
+    <Compile Include="Containers\GlobalContainer.cs" />
+    <Compile Include="Containers\Container.cs" />
+    <Compile Include="GCSViews\Containers\ContainerItem.cs" />
+    <Compile Include="GCSViews\Containers\ContainerMap.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="GCSViews\Container\ContainerMap.Designer.cs">
+    <Compile Include="GCSViews\Containers\ContainerMap.Designer.cs">
       <DependentUpon>ContainerMap.cs</DependentUpon>
     </Compile>
+    <Compile Include="Containers\Row.cs" />
+    <Compile Include="Containers\Tier.cs" />
+    <Compile Include="Containers\Vessel.cs" />
     <Compile Include="GCSViews\FlightData2.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -880,10 +881,10 @@
     <EmbeddedResource Include="GCSViews\ContainersView.resx">
       <DependentUpon>ContainersView.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GCSViews\Container\BaysMap.resx">
+    <EmbeddedResource Include="GCSViews\Containers\BaysMap.resx">
       <DependentUpon>BaysMap.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GCSViews\Container\ContainerMap.resx">
+    <EmbeddedResource Include="GCSViews\Containers\ContainerMap.resx">
       <DependentUpon>ContainerMap.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GCSViews\FlightData.zh-Hant.resx">
@@ -1176,17 +1177,7 @@
     <None Include="airports.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Containers\dbContainersDataSet.xsc">
-      <DependentUpon>dbContainersDataSet.xsd</DependentUpon>
-    </None>
-    <None Include="Containers\dbContainersDataSet.xsd">
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>dbContainersDataSet.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Containers\dbContainersDataSet.xss">
-      <DependentUpon>dbContainersDataSet.xsd</DependentUpon>
-    </None>
+    <None Include="ClassDiagram1.cd" />
     <None Include="Drivers\amd64\ftd2xx.lib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -2850,13 +2841,6 @@
     <None Include="Drivers\px4fmu.inf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <Content Include="Containers\dbContainers.mdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Containers\dbContainers_log.ldf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <DependentUpon>dbContainers.mdf</DependentUpon>
-    </Content>
     <Content Include="Drivers\amd64\ftbusui.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

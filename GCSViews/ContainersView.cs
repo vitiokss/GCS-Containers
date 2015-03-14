@@ -13,6 +13,8 @@ using GOTSDK.Master;
 using GOTSDK.Position;
 using MissionPlanner.GCSViews.GOT;
 using System.Windows.Media.Media3D;
+using MissionPlanner.Containers;
+using System.Xml.Linq;
 
 namespace MissionPlanner.GCSViews
 {
@@ -152,6 +154,23 @@ namespace MissionPlanner.GCSViews
         // Connect to the Games on track position system.
         private void gotConnect_Click(object sender, EventArgs e)
         {
+
+            var viktoras = MainV2.comPort.GetParam("RC1_MIN");
+
+
+            MainV2.comPort.setMode("GUIDED");
+            MainV2.comPort.doARM(true);
+
+            MainV2.comPort.doCommand(MAVLink.MAV_CMD.TAKEOFF, 0, 0, 0, 0, 0, 0, 20);
+
+
+            Bay b = new Bay("TEST BAY");
+            Tier t = new Tier("TEST TIER");
+            Row r = new Row("TEST ROW");
+
+            MissionPlanner.Containers.Container c = new MissionPlanner.Containers.Container("TEST container", b, t, r);
+            c.Name = "TEST 22222";
+
             // Try to connect. This will return false immediately if it fails to find the proper USB port.
             // Otherwise, it will begin connecting and the "Master2X.OnMasterStatusChanged" event will be invoked.
             if (!this.gotMaster.BeginConnect())
@@ -173,6 +192,36 @@ namespace MissionPlanner.GCSViews
                 }
                 calibrationDialog = null;
             }
+        }
+
+        private void importStructureBtn_Click(object sender, EventArgs e)
+        {
+            // Import data.
+            OpenFileDialog containersFileDialog = new OpenFileDialog();
+            containersFileDialog.DefaultExt = "xml";
+            containersFileDialog.Filter = "XML file (*.xml)|*.xml";
+            if (containersFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                // Read the file
+                try
+                {
+                    // Check if any file was selected
+                    if (containersFileDialog.FileName.Length > 0) {
+                        // Read the information from XML.
+                        readContainersData(containersFileDialog.FileName);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error: Could not read the file from disk. Original error" + ex.Message);
+                }
+            }
+        }
+
+        private void readContainersData(string FileName)
+        {
+            XDocument xml = XDocument.Load(FileName);
+            var bays = xml.Root.Descendants("Bay").Select(x => x.Attribute("Name")).ToList();
         }
     }
 }

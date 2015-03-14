@@ -43,7 +43,6 @@
             this.importContainersStructureLbl = new MissionPlanner.Controls.MyLabel();
             this.importStructureBtn = new MissionPlanner.Controls.MyButton();
             this.scanBtn = new MissionPlanner.Controls.MyButton();
-            this.containerMapCtrl = new MissionPlanner.GCSViews.Container.ContainerMap();
             this.GOTGroup.SuspendLayout();
             this.groupGotTransmitters.SuspendLayout();
             this.groupGotReceivers.SuspendLayout();
@@ -175,7 +174,6 @@
             this.containersGroup.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.containersGroup.Controls.Add(this.containerMapCtrl);
             this.containersGroup.Controls.Add(this.importContainersStructureLbl);
             this.containersGroup.Controls.Add(this.importStructureBtn);
             this.containersGroup.Location = new System.Drawing.Point(10, 180);
@@ -204,6 +202,7 @@
             this.importStructureBtn.TabIndex = 0;
             this.importStructureBtn.Text = "Import";
             this.importStructureBtn.UseVisualStyleBackColor = true;
+            this.importStructureBtn.Click += new System.EventHandler(this.importStructureBtn_Click);
             // 
             // scanBtn
             // 
@@ -214,16 +213,6 @@
             this.scanBtn.TabIndex = 3;
             this.scanBtn.Text = "Scan containers";
             this.scanBtn.UseVisualStyleBackColor = true;
-            // 
-            // containerMapCtrl
-            // 
-            this.containerMapCtrl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.containerMapCtrl.Location = new System.Drawing.Point(9, 57);
-            this.containerMapCtrl.Name = "containerMapCtrl";
-            this.containerMapCtrl.Size = new System.Drawing.Size(707, 145);
-            this.containerMapCtrl.TabIndex = 2;
             // 
             // ContainersView
             // 
@@ -262,7 +251,7 @@
         private Controls.MyButton gotCalibrateBtn;
         private Controls.MyLabel gotCalibrationLbl;
         private System.Windows.Forms.TextBox textBox1;
-        private Container.ContainerMap containerMapCtrl;
+        private Containers.ContainerMap containerMapCtrl;
 
     }
 }
