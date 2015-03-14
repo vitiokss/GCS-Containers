@@ -710,7 +710,7 @@ namespace MissionPlanner
                     MaximizeBox = false,
                     MinimizeBox = false,
                     FormBorderStyle = FormBorderStyle.FixedDialog,
-                    Text = "Link Stats"
+                    Text = Strings.LinkStats
                 };
                 // Change the connection stats control, so that when/if the connection stats form is showing,
                 // there will be something to see
@@ -1356,7 +1356,7 @@ namespace MissionPlanner
                 {
                     log.Info("Saving config");
 
-                    XmlTextWriter xmlwriter = new XmlTextWriter(Path.GetDirectoryName(Application.ExecutablePath) + Path.DirectorySeparatorChar + @"config.xml", Encoding.ASCII);
+                    XmlTextWriter xmlwriter = new XmlTextWriter(Path.GetDirectoryName(Application.ExecutablePath) + Path.DirectorySeparatorChar + @"config.xml", Encoding.UTF8);
                     xmlwriter.Formatting = Formatting.Indented;
 
                     xmlwriter.WriteStartDocument();

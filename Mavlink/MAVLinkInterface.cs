@@ -727,6 +727,8 @@ Please check the following
                             continue;
                         }
 
+                        log.Info("setParam gotback "+ st + " : " +par.param_value);
+
                         MAV.param[st] = (par.param_value);
 
                         giveComport = false;
@@ -1561,7 +1563,7 @@ Please check the following
         /// Returns WP count
         /// </summary>
         /// <returns></returns>
-        public byte getWPCount()
+        public ushort getWPCount()
         {
             giveComport = true;
             byte[] buffer;
@@ -1603,7 +1605,7 @@ Please check the following
 
                         log.Info("wpcount: " + count.count);
                         giveComport = false;
-                        return (byte)count.count; // should be ushort, but apm has limited wp count < byte
+                        return count.count; // should be ushort, but apm has limited wp count < byte
                     }
                     else
                     {
