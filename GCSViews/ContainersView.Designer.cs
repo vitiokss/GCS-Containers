@@ -43,6 +43,7 @@
             this.importContainersStructureLbl = new MissionPlanner.Controls.MyLabel();
             this.importStructureBtn = new MissionPlanner.Controls.MyButton();
             this.scanBtn = new MissionPlanner.Controls.MyButton();
+            this.importContainersLoadingBtn = new MissionPlanner.Controls.MyButton();
             this.GOTGroup.SuspendLayout();
             this.groupGotTransmitters.SuspendLayout();
             this.groupGotReceivers.SuspendLayout();
@@ -174,6 +175,7 @@
             this.containersGroup.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.containersGroup.Controls.Add(this.importContainersLoadingBtn);
             this.containersGroup.Controls.Add(this.importContainersStructureLbl);
             this.containersGroup.Controls.Add(this.importStructureBtn);
             this.containersGroup.Location = new System.Drawing.Point(10, 180);
@@ -186,7 +188,7 @@
             // importContainersStructureLbl
             // 
             this.importContainersStructureLbl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.importContainersStructureLbl.Location = new System.Drawing.Point(493, 19);
+            this.importContainersStructureLbl.Location = new System.Drawing.Point(359, 19);
             this.importContainersStructureLbl.Name = "importContainersStructureLbl";
             this.importContainersStructureLbl.resize = false;
             this.importContainersStructureLbl.Size = new System.Drawing.Size(142, 23);
@@ -196,11 +198,11 @@
             // importStructureBtn
             // 
             this.importStructureBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.importStructureBtn.Location = new System.Drawing.Point(641, 19);
+            this.importStructureBtn.Location = new System.Drawing.Point(622, 19);
             this.importStructureBtn.Name = "importStructureBtn";
-            this.importStructureBtn.Size = new System.Drawing.Size(75, 23);
+            this.importStructureBtn.Size = new System.Drawing.Size(94, 23);
             this.importStructureBtn.TabIndex = 0;
-            this.importStructureBtn.Text = "Import";
+            this.importStructureBtn.Text = "Import vessel structure";
             this.importStructureBtn.UseVisualStyleBackColor = true;
             this.importStructureBtn.Click += new System.EventHandler(this.importStructureBtn_Click);
             // 
@@ -213,6 +215,18 @@
             this.scanBtn.TabIndex = 3;
             this.scanBtn.Text = "Scan containers";
             this.scanBtn.UseVisualStyleBackColor = true;
+            // 
+            // importContainersLoadingBtn
+            // 
+            this.importContainersLoadingBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.importContainersLoadingBtn.Enabled = false;
+            this.importContainersLoadingBtn.Location = new System.Drawing.Point(507, 19);
+            this.importContainersLoadingBtn.Name = "importContainersLoadingBtn";
+            this.importContainersLoadingBtn.Size = new System.Drawing.Size(109, 23);
+            this.importContainersLoadingBtn.TabIndex = 2;
+            this.importContainersLoadingBtn.Text = "Load the containers on vessel";
+            this.importContainersLoadingBtn.UseVisualStyleBackColor = true;
+            this.importContainersLoadingBtn.Click += new System.EventHandler(this.importContainersLoadingBtn_Click);
             // 
             // ContainersView
             // 
@@ -251,7 +265,8 @@
         private Controls.MyButton gotCalibrateBtn;
         private Controls.MyLabel gotCalibrationLbl;
         private System.Windows.Forms.TextBox textBox1;
-        private Containers.ContainerMap containerMapCtrl;
+        private ContainerView.ContainerMap containerMapCtrl;
+        private Controls.MyButton importContainersLoadingBtn;
 
     }
 }

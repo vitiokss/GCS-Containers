@@ -45,6 +45,8 @@ namespace MissionPlanner.GCSViews
         // The currect scenario to use for position calculation and display.
         private Scenario3D currentScenario;
 
+        private Vessel CargoShip = new Vessel();
+
         public ContainersView()
         {
             InitializeComponent();
@@ -164,12 +166,10 @@ namespace MissionPlanner.GCSViews
             MainV2.comPort.doCommand(MAVLink.MAV_CMD.TAKEOFF, 0, 0, 0, 0, 0, 0, 20);
 
 
-            Bay b = new Bay("TEST BAY");
-            Tier t = new Tier("TEST TIER");
-            Row r = new Row("TEST ROW");
+            BayObject b = new BayObject("TEST BAY");
 
-            MissionPlanner.Containers.Container c = new MissionPlanner.Containers.Container("TEST container", b, t, r);
-            c.Name = "TEST 22222";
+            //MissionPlanner.Containers.ContainerObject c = new MissionPlanner.Containers.ContainerObject("TEST container", b, t, r);
+            //c.Name = "TEST 22222";
 
             // Try to connect. This will return false immediately if it fails to find the proper USB port.
             // Otherwise, it will begin connecting and the "Master2X.OnMasterStatusChanged" event will be invoked.
@@ -206,22 +206,48 @@ namespace MissionPlanner.GCSViews
                 try
                 {
                     // Check if any file was selected
-                    if (containersFileDialog.FileName.Length > 0) {
+                    if (containersFileDialog.FileName.Length > 0)
+                    {
                         // Read the information from XML.
-                        readContainersData(containersFileDialog.FileName);
+                        CargoShip.LoadContainersStructureFromXML(containersFileDialog.FileName);
                     }
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show("Error: Could not read the file from disk. Original error" + ex.Message);
                 }
+                finally {
+                    importContainersLoadingBtn.Enabled = true;
+                }
             }
         }
 
-        private void readContainersData(string FileName)
+        private void importContainersLoadingBtn_Click(object sender, EventArgs e)
         {
-            XDocument xml = XDocument.Load(FileName);
-            var bays = xml.Root.Descendants("Bay").Select(x => x.Attribute("Name")).ToList();
+            if (CargoShip.isStructureLoaded())
+            {
+
+                // Load the containers placement.
+                OpenFileDialog containersFileDialog = new OpenFileDialog();
+                containersFileDialog.DefaultExt = "xml";
+                containersFileDialog.Filter = "XML file (*.xml)|*.xml"; 
+                if (containersFileDialog.ShowDialog() == DialogResult.OK) {
+                    // Read the file
+                    try
+                    {
+                        // Check if file was selected.
+                        if (containersFileDialog.FileName.Length > 0) {
+                            CargoShip.LoadContainersPlacement(containersFileDialog.FileName);
+                        }
+                    } catch (Exception ex) {
+                        CustomMessageBox.Show("Error: Could not read the file from disk. Original error " + ex.Message);
+                    }
+                }
+            }
+            else
+            {
+                CustomMessageBox.Show("The containers structure is missing, please load the containers structure.");
+            }
         }
     }
 }

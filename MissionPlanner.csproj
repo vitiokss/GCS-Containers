@@ -268,7 +268,6 @@
     <Compile Include="CodeGen.cs" />
     <Compile Include="Comms\CommsSerialScan.cs" />
     <Compile Include="Comms\MAVLinkSerialPort.cs" />
-    <Compile Include="Containers\ContainerData.cs" />
     <Compile Include="Controls\ConnectionControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -391,24 +390,22 @@
     <Compile Include="GCSViews\ContainersView.Designer.cs">
       <DependentUpon>ContainersView.cs</DependentUpon>
     </Compile>
-    <Compile Include="Containers\Bay.cs" />
-    <Compile Include="GCSViews\Containers\BaysMap.cs">
+    <Compile Include="Containers\BayObject.cs" />
+    <Compile Include="GCSViews\ContainerView\BaysMap.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="GCSViews\Containers\BaysMap.Designer.cs">
+    <Compile Include="GCSViews\ContainerView\BaysMap.Designer.cs">
       <DependentUpon>BaysMap.cs</DependentUpon>
     </Compile>
-    <Compile Include="Containers\GlobalContainer.cs" />
-    <Compile Include="Containers\Container.cs" />
-    <Compile Include="GCSViews\Containers\ContainerItem.cs" />
-    <Compile Include="GCSViews\Containers\ContainerMap.cs">
+    <Compile Include="Containers\ContainerStructure.cs" />
+    <Compile Include="Containers\ContainerObject.cs" />
+    <Compile Include="GCSViews\ContainerView\ContainerItem.cs" />
+    <Compile Include="GCSViews\ContainerView\ContainerMap.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="GCSViews\Containers\ContainerMap.Designer.cs">
+    <Compile Include="GCSViews\ContainerView\ContainerMap.Designer.cs">
       <DependentUpon>ContainerMap.cs</DependentUpon>
     </Compile>
-    <Compile Include="Containers\Row.cs" />
-    <Compile Include="Containers\Tier.cs" />
     <Compile Include="Containers\Vessel.cs" />
     <Compile Include="GCSViews\FlightData2.cs">
       <SubType>UserControl</SubType>
@@ -884,10 +881,10 @@
     <EmbeddedResource Include="GCSViews\ContainersView.resx">
       <DependentUpon>ContainersView.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GCSViews\Containers\BaysMap.resx">
+    <EmbeddedResource Include="GCSViews\ContainerView\BaysMap.resx">
       <DependentUpon>BaysMap.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GCSViews\Containers\ContainerMap.resx">
+    <EmbeddedResource Include="GCSViews\ContainerView\ContainerMap.resx">
       <DependentUpon>ContainerMap.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GCSViews\FlightData.zh-Hant.resx">
