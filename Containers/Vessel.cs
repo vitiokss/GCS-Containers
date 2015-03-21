@@ -20,6 +20,8 @@ namespace MissionPlanner.Containers
         private string dataFile = @"../../Containers/data.txt";
         private string loadContainersFile = @"../../Containers/loadingData.xml";
 
+        private int LastBayNumber = 1;
+
         // Constructor.
         public Vessel()
         {
@@ -88,6 +90,15 @@ namespace MissionPlanner.Containers
             {
                 // Create Bay object.
                 BayObject Bay = new BayObject(x.Name, x.LcgDeck, x.LcgHold, x.NearLivingQuarter);
+
+                int currentBayNumber = Convert.ToInt16(x.Name);
+
+                // Get the bays number.
+                if (IsOdd(currentBayNumber) && currentBayNumber > this.LastBayNumber)
+                {
+                    LastBayNumber = currentBayNumber;
+                }
+
                 // Loop through all the bay stacks (floor).
                 foreach (var tier in x.Stack)
                 {   
@@ -96,6 +107,7 @@ namespace MissionPlanner.Containers
                     double length = tier.Container[0].Length;
                     // Loop through all the possible tiers.
                     for (var t = tier.StartTier; t <= tier.LastTier; t+=2) {
+
                         if (Bay.MaxRow < tier.Row)
                         {
                             // Get the rows number.
@@ -114,6 +126,7 @@ namespace MissionPlanner.Containers
                 // Add bay to the vessel.
                 this.AddBaysToList(Bay);
             });
+
             //this.SaveDataToFile();
         }
 
@@ -135,6 +148,11 @@ namespace MissionPlanner.Containers
                     container.containerLoaded = item.Loaded;
                 }
             });
+        }
+
+        public static bool IsOdd(int value)
+        {
+            return value % 2 != 0;
         }
 
         public void LoadPreviousData()
