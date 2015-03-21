@@ -20,7 +20,8 @@ namespace MissionPlanner.Containers
         private string dataFile = @"../../Containers/data.txt";
         private string loadContainersFile = @"../../Containers/loadingData.xml";
 
-        private int LastBayNumber = 1;
+        public int LastBayNumber = 1;
+        public int LastRowNumber = 0; 
 
         // Constructor.
         public Vessel()
@@ -121,6 +122,12 @@ namespace MissionPlanner.Containers
                         Bay.AddContainerToList(Container);
                         // Add the container to the container list of the vessel.
                         this.AddContainerToList(Container);
+
+                        if (LastRowNumber < Bay.MaxRow)
+                        {
+                            LastRowNumber = Bay.MaxRow;
+                        }
+
                     }
                 }
                 // Add bay to the vessel.
