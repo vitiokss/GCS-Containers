@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 
 namespace MissionPlanner.Containers
 {
     [Serializable]
-    class BayObject : ContainerStructure
+    public class BayObject : ContainerStructure
     {
         // Store the bay name (numbering).
         public string Id { get; set; }
@@ -17,6 +18,12 @@ namespace MissionPlanner.Containers
 
         public int MaxRow { get; set; }
         public int MaxTier { get; set; }
+
+        // Helper attributes for drawings.
+        // the drawing rectable for this bay.
+        public Rectangle Rect { get; set; }
+        // the Is this bay selected?.
+        public bool Selected { get; set; }
 
         // Constructor.
         public BayObject(string _id)
@@ -41,6 +48,19 @@ namespace MissionPlanner.Containers
             this.LcgDeck = _lcgdeck;
             this.LcgHold = _lcghold;
             this.NearLivingQuarter = _nearlivingquarter;
+
+            this.Selected = false;
+        }
+
+        public int GetNumber()
+        {
+            return Convert.ToInt16(this.Id);
+        }
+
+        public override string ToString()
+        {
+            return String.Format("Bay: {0} - LcgDeck: {1} - LcgDeck: {2}",
+                                Id, LcgDeck, LcgHold);
         }
     }
 }

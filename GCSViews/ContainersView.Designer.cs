@@ -40,10 +40,12 @@
             this.gotConnect = new MissionPlanner.Controls.MyButton();
             this.droneGroup = new System.Windows.Forms.GroupBox();
             this.containersGroup = new System.Windows.Forms.GroupBox();
+            this.mBayMap = new MissionPlanner.GCSViews.ContainerView.BaysMap();
+            this.importContainersLoadingBtn = new MissionPlanner.Controls.MyButton();
             this.importContainersStructureLbl = new MissionPlanner.Controls.MyLabel();
             this.importStructureBtn = new MissionPlanner.Controls.MyButton();
             this.scanBtn = new MissionPlanner.Controls.MyButton();
-            this.importContainersLoadingBtn = new MissionPlanner.Controls.MyButton();
+            this.lblHoveredEelement = new System.Windows.Forms.Label();
             this.GOTGroup.SuspendLayout();
             this.groupGotTransmitters.SuspendLayout();
             this.groupGotReceivers.SuspendLayout();
@@ -175,20 +177,38 @@
             this.containersGroup.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.containersGroup.Controls.Add(this.importContainersLoadingBtn);
-            this.containersGroup.Controls.Add(this.importContainersStructureLbl);
-            this.containersGroup.Controls.Add(this.importStructureBtn);
-            this.containersGroup.Location = new System.Drawing.Point(10, 180);
+            this.containersGroup.Controls.Add(this.mBayMap);
+            this.containersGroup.Location = new System.Drawing.Point(10, 206);
             this.containersGroup.Name = "containersGroup";
-            this.containersGroup.Size = new System.Drawing.Size(722, 208);
+            this.containersGroup.Size = new System.Drawing.Size(722, 182);
             this.containersGroup.TabIndex = 2;
             this.containersGroup.TabStop = false;
             this.containersGroup.Text = "Containers information";
             // 
+            // mBayMap
+            // 
+            this.mBayMap.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mBayMap.Location = new System.Drawing.Point(3, 16);
+            this.mBayMap.Name = "mBayMap";
+            this.mBayMap.Size = new System.Drawing.Size(716, 163);
+            this.mBayMap.TabIndex = 0;
+            // 
+            // importContainersLoadingBtn
+            // 
+            this.importContainersLoadingBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.importContainersLoadingBtn.Enabled = false;
+            this.importContainersLoadingBtn.Location = new System.Drawing.Point(522, 177);
+            this.importContainersLoadingBtn.Name = "importContainersLoadingBtn";
+            this.importContainersLoadingBtn.Size = new System.Drawing.Size(109, 23);
+            this.importContainersLoadingBtn.TabIndex = 2;
+            this.importContainersLoadingBtn.Text = "Load the containers on vessel";
+            this.importContainersLoadingBtn.UseVisualStyleBackColor = true;
+            this.importContainersLoadingBtn.Click += new System.EventHandler(this.importContainersLoadingBtn_Click);
+            // 
             // importContainersStructureLbl
             // 
             this.importContainersStructureLbl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.importContainersStructureLbl.Location = new System.Drawing.Point(359, 19);
+            this.importContainersStructureLbl.Location = new System.Drawing.Point(374, 177);
             this.importContainersStructureLbl.Name = "importContainersStructureLbl";
             this.importContainersStructureLbl.resize = false;
             this.importContainersStructureLbl.Size = new System.Drawing.Size(142, 23);
@@ -198,7 +218,7 @@
             // importStructureBtn
             // 
             this.importStructureBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.importStructureBtn.Location = new System.Drawing.Point(622, 19);
+            this.importStructureBtn.Location = new System.Drawing.Point(637, 177);
             this.importStructureBtn.Name = "importStructureBtn";
             this.importStructureBtn.Size = new System.Drawing.Size(94, 23);
             this.importStructureBtn.TabIndex = 0;
@@ -216,24 +236,24 @@
             this.scanBtn.Text = "Scan containers";
             this.scanBtn.UseVisualStyleBackColor = true;
             // 
-            // importContainersLoadingBtn
+            // lblHoveredEelement
             // 
-            this.importContainersLoadingBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.importContainersLoadingBtn.Enabled = false;
-            this.importContainersLoadingBtn.Location = new System.Drawing.Point(507, 19);
-            this.importContainersLoadingBtn.Name = "importContainersLoadingBtn";
-            this.importContainersLoadingBtn.Size = new System.Drawing.Size(109, 23);
-            this.importContainersLoadingBtn.TabIndex = 2;
-            this.importContainersLoadingBtn.Text = "Load the containers on vessel";
-            this.importContainersLoadingBtn.UseVisualStyleBackColor = true;
-            this.importContainersLoadingBtn.Click += new System.EventHandler(this.importContainersLoadingBtn_Click);
+            this.lblHoveredEelement.AutoSize = true;
+            this.lblHoveredEelement.Location = new System.Drawing.Point(10, 177);
+            this.lblHoveredEelement.Name = "lblHoveredEelement";
+            this.lblHoveredEelement.Size = new System.Drawing.Size(0, 13);
+            this.lblHoveredEelement.TabIndex = 4;
             // 
             // ContainersView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.lblHoveredEelement);
             this.Controls.Add(this.scanBtn);
+            this.Controls.Add(this.importContainersLoadingBtn);
+            this.Controls.Add(this.importContainersStructureLbl);
             this.Controls.Add(this.containersGroup);
+            this.Controls.Add(this.importStructureBtn);
             this.Controls.Add(this.droneGroup);
             this.Controls.Add(this.GOTGroup);
             this.Name = "ContainersView";
@@ -267,6 +287,8 @@
         private System.Windows.Forms.TextBox textBox1;
         private ContainerView.ContainerMap containerMapCtrl;
         private Controls.MyButton importContainersLoadingBtn;
+        private ContainerView.BaysMap mBayMap;
+        private System.Windows.Forms.Label lblHoveredEelement;
 
     }
 }

@@ -6,7 +6,7 @@ using System.Collections;
 
 namespace MissionPlanner.Containers
 {   
-    abstract class ContainerStructure
+    public abstract class ContainerStructure
     {
         
         public List<ContainerObject> ContainerList = new List<ContainerObject>();

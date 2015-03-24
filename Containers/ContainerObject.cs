@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 
 namespace MissionPlanner.Containers
 {
     [Serializable]
-    class ContainerObject : ContainerStructure
+    public class ContainerObject : ContainerStructure
     {
+        public enum ContainerTypes { Small, Big}
+
         // Store the indexed name of the container.
         public string Name { get; set; }
 
@@ -22,7 +25,15 @@ namespace MissionPlanner.Containers
         public double Y { get; set; }
         public double Z { get; set; }
 
+        // Helper attributes for drawings.
+        // the drawing rectable for this container.
+        public Rectangle Rect { get; set; }
+        // the Is this container selected?.
+        public bool Selected { get; set; }
+
         public bool containerLoaded { get; set; }
+
+        public ContainerTypes ContainerType;
 
         // Constructor.
         public ContainerObject(BayObject _bay, int _row, int _tier)
@@ -32,6 +43,8 @@ namespace MissionPlanner.Containers
             this.Row = _row;
             this.Tier = _tier;
             this.BayNumber = _bay.Id;
+
+            this.ContainerType = (_bay.GetNumber() % 2 == 0) ? ContainerTypes.Big : ContainerTypes.Small;
         }
 
         // Constructor.
@@ -44,6 +57,8 @@ namespace MissionPlanner.Containers
             this.Length = _length;
             this.Width = _width;
             this.BayNumber = _bay.Id;
+
+            this.ContainerType = (_bay.GetNumber() % 2 == 0) ? ContainerTypes.Big : ContainerTypes.Small;
         }
 
         // Generates container index naming.
@@ -54,6 +69,12 @@ namespace MissionPlanner.Containers
         public static string generateContainerName(string id, int r, int t)
         {
             return id + r.ToString() + t.ToString(); 
+        }
+
+        public override string ToString()
+        {
+            return String.Format("Bay: {0} - Row: {1} - Tier: {2}",
+                                        BayNumber, Row, Tier);
         }
 
     }

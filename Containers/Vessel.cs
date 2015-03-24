@@ -14,8 +14,8 @@ namespace MissionPlanner.Containers
     {
         // Holds all the containers on the vessel.
         private List<ContainerObject> ContainersList = new List<ContainerObject>();
-        // Hols all the containers details in bays.
-        private List<BayObject> BaysList = new List<BayObject>();
+        // Holds all the containers details in bays.
+        public List<BayObject> BaysList = new List<BayObject>();
 
         private string dataFile = @"../../Containers/data.txt";
         private string loadContainersFile = @"../../Containers/loadingData.xml";

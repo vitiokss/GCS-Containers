@@ -63,6 +63,26 @@ namespace MissionPlanner.GCSViews
 
             //this.containerMapCtrl.onContainerSelected += containerMapCtrl_onContainerSelected;
             //this.containerMapCtrl.onContainerUnselected += containerMapCtrl_onContainerUnselected;
+
+            // Save the clicks to the file pickers by passing the file pathes directly.
+            CargoShip.LoadContainersStructureFromXML("C:\\Project\\MissionPlanner\\Data_Files\\Vessel Structure.xml");
+            CargoShip.LoadContainersPlacement("C:\\Project\\MissionPlanner\\Data_Files\\loadingData.xml");
+
+            // Link the vissel in the ContainerView user control to the BayMap User Control.
+            this.mBayMap.setVessel(CargoShip);
+
+            this.mBayMap.BayHovered += mBayMap_BayHovered;
+            this.mBayMap.ContainerHovered += mBayMap_ContainerHovered;
+        }
+
+        void mBayMap_ContainerHovered(object sender, ContainerObject container)
+        {
+            this.lblHoveredEelement.Text = container.ToString();
+        }
+
+        void mBayMap_BayHovered(object sender, BayObject bay)
+        {
+            this.lblHoveredEelement.Text = bay.ToString();
         }
 
         void gotMaster_OnMeasurementReceived(Measurement measurement)
