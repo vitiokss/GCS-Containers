@@ -32,8 +32,8 @@ namespace MissionPlanner.GCSViews.ContainerView
         // typograghy settings.
         private Font font = new Font("Verdana", 8, FontStyle.Regular);
         private Brush mTextBrush = Brushes.Black;
-        private Brush mNormalBrush = Brushes.Green;
-        private Brush mSelectedBrush = Brushes.Blue;
+        private Brush mNormalBrush = Brushes.Gray;
+        private Brush mSelectedBrush = Brushes.Green;
         private Pen mPen = Pens.Black;
         StringFormat stringFormat = new StringFormat();
 
