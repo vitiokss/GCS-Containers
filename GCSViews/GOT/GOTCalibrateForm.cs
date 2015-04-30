@@ -9,6 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using GOTSDK;
 using GOTSDK.Position;
+using GOTSDK.Master;
 
 namespace MissionPlanner.GCSViews.GOT
 {
@@ -21,11 +22,13 @@ namespace MissionPlanner.GCSViews.GOT
         public Scenario3D CalibratedScenario { get; private set; }
         private CalibratorTriangle calibrator;
         private bool isCalibrating = false;
+        private IMaster master;
 
-        public GOTCalibrateForm(IEnumerable<Receiver> receivers, CalibratorTriangle cal)
+        public GOTCalibrateForm(IEnumerable<Receiver> receivers, CalibratorTriangle cal, IMaster master)
         {
             this.Receivers = new ObservableCollection<ReceiverViewModel>();
             this.calibrator = cal;
+            this.master = master;
 
             InitializeComponent();
 

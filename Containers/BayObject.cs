@@ -12,6 +12,8 @@ namespace MissionPlanner.Containers
         // Store the bay name (numbering).
         public string Id { get; set; }
 
+        public int integerId { get; set; }
+
         public double LcgDeck { get; set; }
         public double LcgHold { get; set; }
         public bool NearLivingQuarter { get; set; }
@@ -29,6 +31,7 @@ namespace MissionPlanner.Containers
         public BayObject(string _id)
         {
             this.Id = _id;
+            this.integerId = Convert.ToInt16(_id);
             this.NearLivingQuarter = false;
         }
 
@@ -36,6 +39,7 @@ namespace MissionPlanner.Containers
         public BayObject(string _id, double _lcgdeck, double _lcghold)
         {
             this.Id = _id;
+            this.integerId = Convert.ToInt16(_id);
             this.LcgDeck = _lcgdeck;
             this.LcgHold = _lcghold;
             this.NearLivingQuarter = false;
@@ -45,6 +49,7 @@ namespace MissionPlanner.Containers
         public BayObject(string _id, double _lcgdeck, double _lcghold, bool _nearlivingquarter)
         {
             this.Id = _id;
+            this.integerId = Convert.ToInt16(_id);
             this.LcgDeck = _lcgdeck;
             this.LcgHold = _lcghold;
             this.NearLivingQuarter = _nearlivingquarter;

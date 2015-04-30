@@ -142,6 +142,10 @@
     <Reference Include="DotSpatial.Topology">
       <HintPath>packages\DotSpatial.Topology.1.6.0.0\lib\net40-Client\DotSpatial.Topology.dll</HintPath>
     </Reference>
+    <Reference Include="GAF, Version=1.1.5066.41647, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Containers\TSP_GA\GAF.dll</HintPath>
+    </Reference>
     <Reference Include="GOTSDK">
       <HintPath>ExtLibs\GOTSDK.dll</HintPath>
     </Reference>
@@ -166,6 +170,7 @@
       <HintPath>packages\Unofficial.ObjectListView.2.6.0\lib\net20\ObjectListView.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="protobuf-net">
       <HintPath>packages\protobuf-net.2.0.0.668\lib\net40\protobuf-net.dll</HintPath>
     </Reference>
@@ -193,6 +198,7 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Transitions">
@@ -242,6 +248,9 @@
     </Reference>
     <Reference Include="System.Configuration" />
     <Reference Include="System.Drawing" />
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="WindowsFormsIntegration" />
     <Reference Include="zlib.net">
       <HintPath>extLibs\zlib.net.dll</HintPath>
     </Reference>
@@ -268,6 +277,14 @@
     <Compile Include="CodeGen.cs" />
     <Compile Include="Comms\CommsSerialScan.cs" />
     <Compile Include="Comms\MAVLinkSerialPort.cs" />
+    <Compile Include="Containers\TSP\Link.cs" />
+    <Compile Include="Containers\TSP\Node.cs" />
+    <Compile Include="Containers\TSP\Nodes.cs" />
+    <Compile Include="Containers\TSP\Population.cs" />
+    <Compile Include="Containers\TSP\Route.cs" />
+    <Compile Include="Containers\TSP\TSP.cs" />
+    <Compile Include="Containers\TSP\TspEventArgs.cs" />
+    <Compile Include="Containers\TSP_GA\ContainerCity.cs" />
     <Compile Include="Controls\ConnectionControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -420,6 +437,7 @@
     <Compile Include="GCSViews\GOT\GOTCalibrateForm.Designer.cs">
       <DependentUpon>GOTCalibrateForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="GCSViews\GOT\Scenario3DPersistence.cs" />
     <Compile Include="Joystick\Joy_Do_Repeat_Servo.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -2233,6 +2251,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GCSViews\Simulation.de-DE.resx">
       <DependentUpon>Simulation.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GCSViews\Terminal.de-DE.resx">
       <DependentUpon>Terminal.cs</DependentUpon>
@@ -2415,6 +2434,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GCSViews\ConfigurationView\ConfigAccelerometerCalibrationPlane.resx">
       <DependentUpon>ConfigAccelerometerCalibrationPlane.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GCSViews\ConfigurationView\ConfigAccelerometerCalibrationPlane.zh-Hans.resx">
       <DependentUpon>ConfigAccelerometerCalibrationPlane.cs</DependentUpon>
@@ -2851,6 +2871,7 @@
     <None Include="Drivers\px4fmu.inf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="Containers\TSP_GA\GAF.dll" />
     <Content Include="Drivers\amd64\ftbusui.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -6627,7 +6648,6 @@
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

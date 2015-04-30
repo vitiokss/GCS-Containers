@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.GOTGroup = new System.Windows.Forms.GroupBox();
+            this.myButton1 = new MissionPlanner.Controls.MyButton();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.gotCalibrationLbl = new MissionPlanner.Controls.MyLabel();
             this.gotCalibrateBtn = new MissionPlanner.Controls.MyButton();
@@ -38,7 +39,11 @@
             this.receiversList = new System.Windows.Forms.ListBox();
             this.gotConnectionStatusLbl = new MissionPlanner.Controls.MyLabel();
             this.gotConnect = new MissionPlanner.Controls.MyButton();
+            this.zCoordinateTxt = new MissionPlanner.Controls.MyLabel();
+            this.yCoordinateTxt = new MissionPlanner.Controls.MyLabel();
+            this.xCoordinateTxt = new MissionPlanner.Controls.MyLabel();
             this.droneGroup = new System.Windows.Forms.GroupBox();
+            this.commandLabel = new MissionPlanner.Controls.MyLabel();
             this.containersGroup = new System.Windows.Forms.GroupBox();
             this.mBayMap = new MissionPlanner.GCSViews.ContainerView.BaysMap();
             this.importContainersLoadingBtn = new MissionPlanner.Controls.MyButton();
@@ -46,15 +51,22 @@
             this.importStructureBtn = new MissionPlanner.Controls.MyButton();
             this.scanBtn = new MissionPlanner.Controls.MyButton();
             this.lblHoveredEelement = new System.Windows.Forms.Label();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.myButton2 = new MissionPlanner.Controls.MyButton();
             this.GOTGroup.SuspendLayout();
             this.groupGotTransmitters.SuspendLayout();
             this.groupGotReceivers.SuspendLayout();
+            this.droneGroup.SuspendLayout();
             this.containersGroup.SuspendLayout();
+            this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // GOTGroup
             // 
             this.GOTGroup.AutoSize = true;
+            this.GOTGroup.Controls.Add(this.myButton1);
             this.GOTGroup.Controls.Add(this.textBox1);
             this.GOTGroup.Controls.Add(this.gotCalibrationLbl);
             this.GOTGroup.Controls.Add(this.gotCalibrateBtn);
@@ -66,10 +78,20 @@
             this.GOTGroup.Margin = new System.Windows.Forms.Padding(10);
             this.GOTGroup.Name = "GOTGroup";
             this.GOTGroup.Padding = new System.Windows.Forms.Padding(5);
-            this.GOTGroup.Size = new System.Drawing.Size(409, 157);
+            this.GOTGroup.Size = new System.Drawing.Size(409, 191);
             this.GOTGroup.TabIndex = 0;
             this.GOTGroup.TabStop = false;
             this.GOTGroup.Text = "Games on track position system";
+            // 
+            // myButton1
+            // 
+            this.myButton1.Location = new System.Drawing.Point(9, 129);
+            this.myButton1.Name = "myButton1";
+            this.myButton1.Size = new System.Drawing.Size(75, 23);
+            this.myButton1.TabIndex = 6;
+            this.myButton1.Text = "Restart GOT";
+            this.myButton1.UseVisualStyleBackColor = true;
+            this.myButton1.Click += new System.EventHandler(this.myButton1_Click);
             // 
             // textBox1
             // 
@@ -161,26 +183,66 @@
             this.gotConnect.UseVisualStyleBackColor = true;
             this.gotConnect.Click += new System.EventHandler(this.gotConnect_Click);
             // 
+            // zCoordinateTxt
+            // 
+            this.zCoordinateTxt.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.zCoordinateTxt.Location = new System.Drawing.Point(11, 21);
+            this.zCoordinateTxt.Name = "zCoordinateTxt";
+            this.zCoordinateTxt.resize = false;
+            this.zCoordinateTxt.Size = new System.Drawing.Size(369, 25);
+            this.zCoordinateTxt.TabIndex = 2;
+            this.zCoordinateTxt.Text = "MOVE_FORWARD";
+            // 
+            // yCoordinateTxt
+            // 
+            this.yCoordinateTxt.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.yCoordinateTxt.Location = new System.Drawing.Point(11, 81);
+            this.yCoordinateTxt.Name = "yCoordinateTxt";
+            this.yCoordinateTxt.resize = false;
+            this.yCoordinateTxt.Size = new System.Drawing.Size(260, 23);
+            this.yCoordinateTxt.TabIndex = 1;
+            // 
+            // xCoordinateTxt
+            // 
+            this.xCoordinateTxt.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.xCoordinateTxt.Location = new System.Drawing.Point(11, 52);
+            this.xCoordinateTxt.Name = "xCoordinateTxt";
+            this.xCoordinateTxt.resize = false;
+            this.xCoordinateTxt.Size = new System.Drawing.Size(260, 23);
+            this.xCoordinateTxt.TabIndex = 0;
+            // 
             // droneGroup
             // 
-            this.droneGroup.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.droneGroup.Controls.Add(this.commandLabel);
+            this.droneGroup.Controls.Add(this.zCoordinateTxt);
+            this.droneGroup.Controls.Add(this.yCoordinateTxt);
+            this.droneGroup.Controls.Add(this.xCoordinateTxt);
             this.droneGroup.Location = new System.Drawing.Point(429, 10);
             this.droneGroup.Name = "droneGroup";
-            this.droneGroup.Size = new System.Drawing.Size(303, 157);
+            this.droneGroup.Size = new System.Drawing.Size(478, 190);
             this.droneGroup.TabIndex = 1;
             this.droneGroup.TabStop = false;
-            this.droneGroup.Text = "Drone";
+            this.droneGroup.Text = "Motion command";
+            // 
+            // commandLabel
+            // 
+            this.commandLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.commandLabel.ForeColor = System.Drawing.Color.Green;
+            this.commandLabel.Location = new System.Drawing.Point(6, 151);
+            this.commandLabel.Name = "commandLabel";
+            this.commandLabel.resize = false;
+            this.commandLabel.Size = new System.Drawing.Size(466, 33);
+            this.commandLabel.TabIndex = 3;
+            this.commandLabel.Text = "COMMAND:";
             // 
             // containersGroup
             // 
-            this.containersGroup.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.containersGroup.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.containersGroup.Controls.Add(this.mBayMap);
-            this.containersGroup.Location = new System.Drawing.Point(10, 206);
+            this.containersGroup.Location = new System.Drawing.Point(10, 235);
             this.containersGroup.Name = "containersGroup";
-            this.containersGroup.Size = new System.Drawing.Size(722, 182);
+            this.containersGroup.Size = new System.Drawing.Size(897, 237);
             this.containersGroup.TabIndex = 2;
             this.containersGroup.TabStop = false;
             this.containersGroup.Text = "Containers information";
@@ -190,14 +252,13 @@
             this.mBayMap.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mBayMap.Location = new System.Drawing.Point(3, 16);
             this.mBayMap.Name = "mBayMap";
-            this.mBayMap.Size = new System.Drawing.Size(716, 163);
+            this.mBayMap.Size = new System.Drawing.Size(891, 218);
             this.mBayMap.TabIndex = 0;
             // 
             // importContainersLoadingBtn
             // 
-            this.importContainersLoadingBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.importContainersLoadingBtn.Enabled = false;
-            this.importContainersLoadingBtn.Location = new System.Drawing.Point(522, 177);
+            this.importContainersLoadingBtn.Location = new System.Drawing.Point(162, 206);
             this.importContainersLoadingBtn.Name = "importContainersLoadingBtn";
             this.importContainersLoadingBtn.Size = new System.Drawing.Size(109, 23);
             this.importContainersLoadingBtn.TabIndex = 2;
@@ -207,8 +268,7 @@
             // 
             // importContainersStructureLbl
             // 
-            this.importContainersStructureLbl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.importContainersStructureLbl.Location = new System.Drawing.Point(374, 177);
+            this.importContainersStructureLbl.Location = new System.Drawing.Point(10, 206);
             this.importContainersStructureLbl.Name = "importContainersStructureLbl";
             this.importContainersStructureLbl.resize = false;
             this.importContainersStructureLbl.Size = new System.Drawing.Size(142, 23);
@@ -217,8 +277,7 @@
             // 
             // importStructureBtn
             // 
-            this.importStructureBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.importStructureBtn.Location = new System.Drawing.Point(637, 177);
+            this.importStructureBtn.Location = new System.Drawing.Point(280, 206);
             this.importStructureBtn.Name = "importStructureBtn";
             this.importStructureBtn.Size = new System.Drawing.Size(94, 23);
             this.importStructureBtn.TabIndex = 0;
@@ -228,13 +287,14 @@
             // 
             // scanBtn
             // 
-            this.scanBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.scanBtn.Location = new System.Drawing.Point(632, 394);
+            this.scanBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.scanBtn.Location = new System.Drawing.Point(10, 475);
             this.scanBtn.Name = "scanBtn";
             this.scanBtn.Size = new System.Drawing.Size(100, 23);
             this.scanBtn.TabIndex = 3;
             this.scanBtn.Text = "Scan containers";
             this.scanBtn.UseVisualStyleBackColor = true;
+            this.scanBtn.Click += new System.EventHandler(this.scanBtn_Click);
             // 
             // lblHoveredEelement
             // 
@@ -244,10 +304,47 @@
             this.lblHoveredEelement.Size = new System.Drawing.Size(0, 13);
             this.lblHoveredEelement.TabIndex = 4;
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.pictureBox1);
+            this.groupBox1.Location = new System.Drawing.Point(913, 10);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(97, 488);
+            this.groupBox1.TabIndex = 5;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Route planner";
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.BackColor = System.Drawing.Color.White;
+            this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pictureBox1.Location = new System.Drawing.Point(3, 16);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Padding = new System.Windows.Forms.Padding(10);
+            this.pictureBox1.Size = new System.Drawing.Size(91, 469);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.pictureBox1.TabIndex = 0;
+            this.pictureBox1.TabStop = false;
+            // 
+            // myButton2
+            // 
+            this.myButton2.Location = new System.Drawing.Point(380, 206);
+            this.myButton2.Name = "myButton2";
+            this.myButton2.Size = new System.Drawing.Size(75, 23);
+            this.myButton2.TabIndex = 6;
+            this.myButton2.Text = "Play log data";
+            this.myButton2.UseVisualStyleBackColor = true;
+            this.myButton2.Click += new System.EventHandler(this.myButton2_Click);
+            // 
             // ContainersView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.myButton2);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.lblHoveredEelement);
             this.Controls.Add(this.scanBtn);
             this.Controls.Add(this.importContainersLoadingBtn);
@@ -257,12 +354,16 @@
             this.Controls.Add(this.droneGroup);
             this.Controls.Add(this.GOTGroup);
             this.Name = "ContainersView";
-            this.Size = new System.Drawing.Size(746, 420);
+            this.Size = new System.Drawing.Size(1013, 502);
             this.GOTGroup.ResumeLayout(false);
             this.GOTGroup.PerformLayout();
             this.groupGotTransmitters.ResumeLayout(false);
             this.groupGotReceivers.ResumeLayout(false);
+            this.droneGroup.ResumeLayout(false);
             this.containersGroup.ResumeLayout(false);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -289,6 +390,14 @@
         private Controls.MyButton importContainersLoadingBtn;
         private ContainerView.BaysMap mBayMap;
         private System.Windows.Forms.Label lblHoveredEelement;
+        private Controls.MyLabel zCoordinateTxt;
+        private Controls.MyLabel yCoordinateTxt;
+        private Controls.MyLabel xCoordinateTxt;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private Controls.MyButton myButton1;
+        private Controls.MyButton myButton2;
+        private Controls.MyLabel commandLabel;
 
     }
 }

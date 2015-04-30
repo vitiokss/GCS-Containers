@@ -1265,6 +1265,13 @@ namespace MissionPlanner
                         freemem = mem.freemem;
                         brklevel = mem.brkval;
                     }
+
+                    bytearray = MAV.packets[(byte)MAVLink.MAVLINK_MSG_ID.LOCAL_POSITION_NED];
+                    if (bytearray != null)
+                    {
+                        var local_position_ned = bytearray.ByteArrayToStructure<MAVLink.mavlink_local_position_ned_t>(6);
+                    }
+
                 }
 
                 //Console.Write(DateTime.Now.Millisecond + " start ");

@@ -10,10 +10,10 @@ using System.Xml.Linq;
 
 namespace MissionPlanner.Containers
 {
-    class Vessel
+    public class Vessel
     {
         // Holds all the containers on the vessel.
-        private List<ContainerObject> ContainersList = new List<ContainerObject>();
+        public List<ContainerObject> ContainersList = new List<ContainerObject>();
         // Holds all the containers details in bays.
         public List<BayObject> BaysList = new List<BayObject>();
 
@@ -21,7 +21,8 @@ namespace MissionPlanner.Containers
         private string loadContainersFile = @"../../Containers/loadingData.xml";
 
         public int LastBayNumber = 1;
-        public int LastRowNumber = 0; 
+        public int LastRowNumber = 0;
+        public int LastTierNumber = 0;
 
         // Constructor.
         public Vessel()
@@ -50,14 +51,14 @@ namespace MissionPlanner.Containers
             try
             {
                 XDocument doc = new XDocument(new XElement("Bays"));
-                    doc.Root.Add(
-                from Bay in _bay
-                select new XElement("Bay", new XAttribute("Name", Bay.Id),
-                    new XElement("Containers",
-                        from container in Bay.ContainerList
-                        select new XElement("Container", new XAttribute("Tier", container.Tier), new XAttribute("Row", container.Row), new XAttribute("Loaded", true))
-                    )
-                ));
+                doc.Root.Add(
+            from Bay in _bay
+            select new XElement("Bay", new XAttribute("Name", Bay.Id),
+                new XElement("Containers",
+                    from container in Bay.ContainerList
+                    select new XElement("Container", new XAttribute("Tier", container.Tier), new XAttribute("Row", container.Row), new XAttribute("Loaded", true))
+                )
+            ));
                 doc.Save(this.loadContainersFile);
             }
             catch (Exception ex)
@@ -82,7 +83,8 @@ namespace MissionPlanner.Containers
                     Row = Convert.ToInt16(s.Attribute("Row").Value),
                     StartTier = Convert.ToInt16(s.Attribute("StartTier").Value),
                     LastTier = Convert.ToInt16(s.Attribute("LastTier").Value),
-                    Container = s.Descendants("ContainerType").Where(c => Convert.ToDouble(c.Attribute("Length").Value) < 13).Where(c => Convert.ToInt16(c.Attribute("StartTier").Value) >= 80).Select(c => new {
+                    Container = s.Descendants("ContainerType").Where(c => Convert.ToDouble(c.Attribute("Length").Value) < 13).Where(c => Convert.ToInt16(c.Attribute("StartTier").Value) >= 80).Select(c => new
+                    {
                         Length = Convert.ToDouble(c.Attribute("Length").Value),
                         Width = Convert.ToDouble(c.Attribute("Width").Value),
                     }).ToList()
@@ -102,12 +104,17 @@ namespace MissionPlanner.Containers
 
                 // Loop through all the bay stacks (floor).
                 foreach (var tier in x.Stack)
-                {   
+                {
                     // Get the width and the length of the container type.
                     double width = tier.Container[0].Width;
                     double length = tier.Container[0].Length;
+                    if (LastTierNumber < tier.LastTier)
+                    {
+                        LastTierNumber = tier.LastTier;
+                    }
                     // Loop through all the possible tiers.
-                    for (var t = tier.StartTier; t <= tier.LastTier; t+=2) {
+                    for (var t = tier.StartTier; t <= tier.LastTier; t += 2)
+                    {
 
                         if (Bay.MaxRow < tier.Row)
                         {
@@ -133,8 +140,243 @@ namespace MissionPlanner.Containers
                 // Add bay to the vessel.
                 this.AddBaysToList(Bay);
             });
+        }
 
-            //this.SaveDataToFile();
+        /// <summary>
+        /// Helper function to check if the container is placed in the specific place.
+        /// </summary>
+        /// <param name="bay"></param>
+        /// <param name="tier"></param>
+        /// <param name="row"></param>
+        /// <returns></returns>
+        protected bool containerIsPlaced(int bay, int tier, int row)
+        {
+            return this.ContainersList.Exists(x => x.Bay.Equals(bay) && x.Tier.Equals(tier) && x.Row.Equals(row) && x.containerLoaded);
+        }
+
+        // This function will calculate all the coordinates for container inspection.
+        // Based on this coordinates the flight system will be created.
+        public void CalculateContainersCoordinates(List<ContainerObject> selectedContainers)
+        {
+            foreach (var container in selectedContainers)
+            {
+                int accessibleRow = container.Row;
+                int accessibleTier = container.Tier;
+                int accessibleBay = container.Bay;
+
+                double x_unit = container.Width / 2;
+                double y_unit = container.Length / 2;
+                double z_unit = 2.59;
+
+                // Check if the container is surrounded by others.
+                // 1. Check if there is any container placed on the top.
+                // Check if the bay number is odd (20' containers).
+                if (IsOdd(container.Bay))
+                {
+                    container.Visible = !containerIsPlaced(container.Bay, container.Tier + 2, container.Row);
+                    // Check if there is no 40' container placed on the top.
+                    if (container.Visible)
+                    {
+                        container.Visible = !containerIsPlaced(getClosestEvenNumberOfTheBay(container.Bay), container.Tier + 2, container.Row);
+                    }
+                    // Override the tier index.
+                    accessibleTier = container.Visible ? container.Tier + 2 : accessibleTier;
+                }
+                //40' containers.
+                else
+                {
+                    container.Visible = !containerIsPlaced(container.Bay, container.Tier + 2, container.Row);
+                    // If the container is vissible, lets check again the odd 20' containers.
+                    if (container.Visible)
+                    {
+                        if (!containerIsPlaced(container.Bay + 1, container.Tier + 2, container.Row) && !containerIsPlaced(container.Bay - 1, container.Tier + 2, container.Row))
+                        {
+                            container.Visible = true;
+                        }
+                        else if ((!containerIsPlaced(container.Bay + 1, container.Tier + 2, container.Row) && containerIsPlaced(container.Bay - 1, container.Tier + 2, container.Row)))
+                        {
+                            y_unit = y_unit - (y_unit / 2);
+                            container.Visible = true;
+                        }
+                        else if ((containerIsPlaced(container.Bay + 1, container.Tier + 2, container.Row) && !containerIsPlaced(container.Bay - 1, container.Tier + 2, container.Row)))
+                        {
+                            y_unit = y_unit + (y_unit / 2);
+                            container.Visible = true;
+                        }
+                    }
+                    // Override the tier index.
+                    accessibleTier = container.Visible ? container.Tier + 2 : accessibleTier;
+                }
+
+                // 2. Check if there is possible to access the container from the left side.
+                if (!container.Visible)
+                {
+                    int tmpRow = IsOdd(container.Row) ? (container.Row != 1) ? container.Row - 2 : container.Row + 1 : container.Row + 2;
+                    if (IsOdd(container.Bay))
+                    {
+                        // 20' container.
+                        container.Visible = !containerIsPlaced(container.Bay, container.Tier, tmpRow);
+                        if (container.Visible)
+                        {
+                            // Check the 40' container.
+                            container.Visible = !containerIsPlaced(getClosestEvenNumberOfTheBay(container.Bay), container.Tier, tmpRow);
+                        }
+                        accessibleRow = container.Visible ? tmpRow : accessibleRow;
+                    }
+                    else
+                    {
+                        // 40' container.
+                        container.Visible = !containerIsPlaced(container.Bay, container.Tier, tmpRow);
+                        if (container.Visible)
+                        {
+                            // Check other bays.
+                            if (!containerIsPlaced(container.Bay + 1, container.Tier, tmpRow) && containerIsPlaced(container.Bay - 1, container.Tier, tmpRow))
+                            {
+                                y_unit = y_unit - (y_unit / 2);
+                                accessibleBay = container.Bay + 1;
+                            }
+                            else if (containerIsPlaced(container.Bay + 1, container.Tier, tmpRow) && !containerIsPlaced(container.Bay - 1, container.Tier, tmpRow))
+                            {
+                                y_unit = y_unit + (y_unit / 2);
+                                accessibleBay = container.Bay - 1;
+                            }
+                        }
+                    }
+                }
+
+                // 3. Check if there is any container placed on the right side.
+                if (!container.Visible)
+                {
+                    int tmpRow = IsOdd(container.Row) ? container.Row + 2 : (container.Row != 2) ? container.Row - 2 : 1;
+                    if (IsOdd(container.Bay))
+                    {
+                        // 20' container.
+                        container.Visible = !containerIsPlaced(container.Bay, container.Tier, tmpRow);
+                        if (container.Visible)
+                        {
+                            // Check the 40' container.
+                            container.Visible = !containerIsPlaced(getClosestEvenNumberOfTheBay(container.Bay), container.Tier, tmpRow);
+                        }
+                        accessibleRow = container.Visible ? tmpRow : accessibleRow;
+                    }
+                    else
+                    {
+                        // 40' container.
+                        container.Visible = !containerIsPlaced(container.Bay, container.Tier, tmpRow);
+                        if (container.Visible)
+                        {
+                            // Check other bays.
+                            if (!containerIsPlaced(container.Bay + 1, container.Tier, tmpRow) && containerIsPlaced(container.Bay - 1, container.Tier, tmpRow))
+                            {
+                                y_unit = y_unit - (y_unit / 2);
+                                accessibleBay = container.Bay + 1;
+                            }
+                            else if (containerIsPlaced(container.Bay + 1, container.Tier, tmpRow) && !containerIsPlaced(container.Bay - 1, container.Tier, tmpRow))
+                            {
+                                y_unit = y_unit + (y_unit / 2);
+                                accessibleBay = container.Bay - 1;
+                            }
+                        }
+                    }
+                }
+
+                // 4. Check if container can be accessed from the front.
+                if (!container.Visible)
+                {
+
+                    if (IsOdd(container.Bay))
+                    {
+                        if ((container.Bay - 2) > 1)
+                        {
+                            container.Visible = !containerIsPlaced(container.Bay - 2, container.Tier, container.Row);
+                            if (container.Visible)
+                            {
+                                // Check that there is no 40 container placed.
+                                container.Visible = !containerIsPlaced(getClosestEvenNumberOfTheBay(container.Bay - 2), container.Tier, container.Row);
+                            }
+                            accessibleBay = container.Visible ? container.Bay - 2 : accessibleBay;
+                        }
+                    }
+                    else
+                    {
+                        if ((container.Bay - 3) > 1) {
+                            container.Visible = !containerIsPlaced(container.Bay - 3, container.Tier, container.Row);
+                            if (container.Visible)
+                            {
+                                container.Visible = !containerIsPlaced(getClosestEvenNumberOfTheBay(container.Bay - 3), container.Tier, container.Row);
+                            }
+                            accessibleBay = container.Visible ? container.Bay - 3 : accessibleBay;
+                        }
+                    }
+
+                }
+
+                // 5. Check if container can be accessed from the back.
+                if (!container.Visible)
+                {
+
+                    if (IsOdd(container.Bay))
+                    {
+                        container.Visible = !containerIsPlaced(container.Bay + 2, container.Tier, container.Row);
+                        if (container.Visible)
+                        {
+                            // Check that there is no 40 container placed.
+                            container.Visible = !containerIsPlaced(getClosestEvenNumberOfTheBay(container.Bay + 2), container.Tier, container.Row);
+                        }
+                        accessibleBay = container.Visible ? container.Bay + 2 : accessibleBay;
+                    }
+                    else
+                    {
+                        container.Visible = !containerIsPlaced(container.Bay + 3, container.Tier, container.Row);
+                        if (container.Visible)
+                        {
+                            container.Visible = !containerIsPlaced(getClosestEvenNumberOfTheBay(container.Bay + 3), container.Tier, container.Row);
+                        }
+                        accessibleBay = container.Visible ? container.Bay + 3 : accessibleBay;
+                    }
+
+                }
+
+                // If the container is not accessible from any side, make sure that we fly only on top of the stack.
+                if (!container.Visible)
+                {
+                    accessibleTier = this.BaysList[0].MaxTier;
+                }
+
+                // We place the games on track and start calculating the coordinates from the front and left side.
+                // Get the maximum row number from the vessel.
+                container.X = x_unit * rowIndex(accessibleRow);
+                container.Y = y_unit * bayIndex(accessibleBay);
+
+                container.Z = z_unit * tierIndex(accessibleTier);
+                if (container.Tier == accessibleTier)
+                {
+                    container.Z += 0.5; //offset not to land on the container.
+                }
+            }
+        }
+
+        /// <summary>
+        /// From the given bay id, returns the closest even number bay id.
+        /// </summary>
+        /// <param name="bayId"></param>
+        /// <returns></returns>
+        protected int getClosestEvenNumberOfTheBay(int bayId)
+        {
+            if (!IsOdd(bayId))
+            {
+                return bayId;
+            }
+
+            if ((bayId - 1) % 4 == 1)
+            {
+                return (bayId - 1);
+            }
+            else
+            {
+                return bayId + 1;
+            }
+
         }
 
         public void LoadContainersPlacement(string FileName)
@@ -149,9 +391,11 @@ namespace MissionPlanner.Containers
                     Tier = Convert.ToInt16(c.Attribute("Tier").Value),
                     Loaded = Convert.ToBoolean(c.Attribute("Loaded").Value)
                 })
-            }).ToList().ForEach(d => { 
-                foreach (var item in d.Containers) {
-                    ContainerObject container = this.ContainersList.Find(i => i.BayNumber == d.Name && i.Row == item.Row && i.Tier == item.Tier);
+            }).ToList().ForEach(d =>
+            {
+                foreach (var item in d.Containers)
+                {
+                    ContainerObject container = this.ContainersList.Find(i => i.BayNumberString == d.Name && i.Row == item.Row && i.Tier == item.Tier);
                     container.containerLoaded = item.Loaded;
                 }
             });
@@ -160,6 +404,54 @@ namespace MissionPlanner.Containers
         public static bool IsOdd(int value)
         {
             return value % 2 != 0;
+        }
+
+        // Calculate the position of the bay in terms of cartasian coordinate system. (y)
+        public int bayIndex(int bay_number)
+        {
+            int bayIndex = 0;
+
+            if (IsOdd(bay_number))
+            {
+                bayIndex = (bay_number + 1) / 2;
+            }
+            else
+            {
+                bayIndex = (bay_number + 2) / 4;
+            }
+            return bayIndex;
+        }
+
+        // Calculate the position of the tier in terms of cartasian coordinate system. (z)
+        public int tierIndex(int tier_number)
+        {
+            int tierIndex = 0;
+            tierIndex = (tier_number - 80) / 2;
+            return tierIndex;
+        }
+
+        // Calculate the position of the row in terms of cartasian coordiante system. (x)
+        public int rowIndex(int row_number)
+        {
+            int rowIndex = 0;
+
+            int lastEvenNumberOfContainer = IsOdd(LastRowNumber) ? LastRowNumber - 1 : LastRowNumber;
+            if (IsOdd(row_number))
+            {
+                rowIndex = (lastEvenNumberOfContainer + row_number + 1) / 2;
+            }
+            else
+            {
+                if (row_number == lastEvenNumberOfContainer)
+                {
+                    rowIndex = 1;
+                }
+                else
+                {
+                    rowIndex = (lastEvenNumberOfContainer - row_number) / 2;
+                }
+            }
+            return rowIndex;
         }
 
         public void LoadPreviousData()
