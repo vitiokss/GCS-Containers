@@ -39,13 +39,18 @@ namespace MissionPlanner.GCSViews
             TURN_RIGHT,
             MOVE_UP,
             MOVE_DOWN,
-            STOP
+            STOP,
+            MODE_RTL,
+            MODE_POSITION_HOLD,
+            MODE_ALTITUDE_HOLD,
+            SCAN
         }
 
         // Struct of the motion command.
         public struct MOTION_COMMAND {
             public MOTIONS motion;
             public string value;
+            public PointF position;
             public string getMotionName(MOTIONS m)
             {
                 switch (m)
@@ -72,6 +77,14 @@ namespace MissionPlanner.GCSViews
                         return "TURN_LEFT";
                     case MOTIONS.TURN_RIGHT:
                         return "TURN_RIGHT";
+                    case MOTIONS.MODE_RTL:
+                        return "MODE_RTL";
+                    case MOTIONS.MODE_POSITION_HOLD:
+                        return "MODE_POSITION_HOLD";
+                    case MOTIONS.MODE_ALTITUDE_HOLD:
+                        return "MODE_ALTITUDE_HOLD";
+                    case MOTIONS.SCAN:
+                        return "SCAN";
                 }
                 return String.Empty;
             }
@@ -80,6 +93,11 @@ namespace MissionPlanner.GCSViews
             {
                 string command = getMotionName(motion);
                 return String.Format("{0} {1}", command, value);
+            }
+
+            public string GetPositionString()
+            {
+                return String.Format("{0} {1}", position.X, position.Y);
             }
         }
 
@@ -487,6 +505,22 @@ namespace MissionPlanner.GCSViews
                     CustomMessageBox.Show(string.Format("The container {0} is not visually seen, so the inspection might be not accurate.", c.Name));
                 }
             }
+
+            // Override the selected containers with the test containers we are using in the IntermediaLab.
+            List<PointF> targets = new List<PointF>();
+            //Record the target points.
+            targets.Add(new PointF(1.075f, 0.452f));
+            targets.Add(new PointF(1.747f, 1.435f));
+            targets.Add(new PointF(0.334f, 1.99f));
+            targets.Add(new PointF(1.177f, 3.124f));
+            int idx = 0;
+            foreach (var c in selectedContainers)
+            {
+                c.X = targets[idx].X;
+                c.Y = targets[idx].Y;
+                idx++;
+            }
+
             TSP(CargoShip);
         }
         // Travelling salesman problem solving by using Genetic Algorithm.
@@ -563,60 +597,174 @@ namespace MissionPlanner.GCSViews
             }
             if (targetPoints.Count > 0)
             {
-                NavigateTheDrone(targetPoints);
+                Thread navigateDrone = new Thread(() => NavigateTheDrone(targetPoints));
+                navigateDrone.Start();
             }
         }
-        
-        // Main function which will create the navigation for the drone.
+        #region DRONE_NAVIGATION
+        // Main function which will create the navigation commands route for the drone.
         public void NavigateTheDrone(List<ContainerCity> containersList)
         {
-            // Take off to the specific height.
-            operatingHeight = 2.59 * CargoShip.tierIndex(CargoShip.LastTierNumber);
-            attachCommand(commandsList, new MOTION_COMMAND() { motion = MOTIONS.TAKE_OFF, value = operatingHeight.ToString() });
+            // Take off to the specific height, above all the containers.
+            var operatingHeight = 2.59 * CargoShip.tierIndex(CargoShip.LastTierNumber);
+            attachCommand(new MOTION_COMMAND() { motion = MOTIONS.TAKE_OFF, value = operatingHeight.ToString() });
             // Make fake movement to analyze the orientation of the drone regards local environment.
-            PointF current = new PointF((float)GOT_X, (float)GOT_Y);
-            commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MOVE_FORWARD });
-            PointF newPosition = new PointF((float)GOT_X, (float)GOT_Y);
-            commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MOVE_BACKWARD });
-
-            double orientationAngle = getAngleBetween2Points(current, newPosition);
-
-            foreach (var container in containersList)
+            PointF calibratePosition_A = getCurrentPosition();
+            moveFORWARD();
+            PointF calibratePosition_B = getCurrentPosition();
+            moveBACKWARDS();
+            double angle = getAngleBetween2Points(calibratePosition_A, calibratePosition_B);
+            var SINGLE_STEP = Distance(calibratePosition_A, calibratePosition_B);
+            foreach (ContainerCity container in containersList)
             {
-                // Go down to scan the container.
+                // Repeat commands while we reach the target container.
+                while (!bTargetIsReached(container))
+                {
+                    // Calculate the angle between the current position and the target container.
+                    // And make a turn move if necessary.
+                    angle = turnTowardsTargetPoint(angle, container);
+                    // Move forward.
+                    moveFORWARD();
+                }
+                // Container reached, go down to the height of the container to scan.
                 commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MOVE_DOWN, value = (container.Z).ToString()});
-
+                commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.SCAN });
+                commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MOVE_UP, value = (operatingHeight).ToString() });
             }
             // Land the drone.
             commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.LAND });
-            // Initial point.
-            LogCommands(commandsList);
+            // Add all the recorded commands to the file.
+            SaveCommandsToFile(commandsList);
+            SaveMovementsLog(commandsList);
+            Thread.CurrentThread.Abort();
         }
-
         // Attaching movement comamnds to the list.
-        public void attachCommand(List<MOTION_COMMAND> cmdList, MOTION_COMMAND cmd)
+        public void attachCommand(MOTION_COMMAND cmd)
         {
-            Console.Beep();
-            commandLabel.Text = cmd.ToString();
-            cmdList.Add(cmd);
+            // Update the GUI.
+            this.Invoke((MethodInvoker)delegate {
+                commandLabel.Text = cmd.ToString();
+            });
+            // Tell what command to do.
+            if (MessageBox.Show(cmd.ToString(), "Complete the following movement?", MessageBoxButtons.OKCancel) == DialogResult.OK)
+            {
+                // Add the movement command to list.
+                commandsList.Add(cmd);
+            }
+            else
+            {
+                // Abort the flight, add command return to launch to savely land the drone.
+                commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MODE_RTL });
+                // Abort current thread.
+                Thread.CurrentThread.Abort();
+            }
         }
-
-        // Log commands into file.
-        public void LogCommands(List<MOTION_COMMAND> commands)
+        // Get the current position of the drone in the Games on Track system.
+        public PointF getCurrentPosition() {
+            float x = (float)GOT_X;
+            float y = (float)GOT_Y;
+            return new PointF(x, y);
+        }
+        // Turn the drone towards the target point.
+        private double turnTowardsTargetPoint(double currentAngle, ContainerCity container)
+        {
+            PointF target = new PointF((float)container.X, (float)container.Y);
+            var angleToTarget = getAngleBetween2Points(getCurrentPosition(), target);
+            var turnAngle = Math.Round(currentAngle - (angleToTarget));
+            if (turnAngle > 1)
+            {
+                if (currentAngle < angleToTarget)
+                {
+                    // TURN LEFT
+                    turnLEFT(turnAngle);
+                }
+                else
+                {
+                    // TURN RIGHT
+                    turnRIGHT(turnAngle);
+                }
+                // If we made the turn send back the new angle.
+                return angleToTarget;
+            }
+            // Else send back the previous angle, because we did not make any move.
+            return currentAngle;
+        }
+        // Check if we reach the target.
+        public bool bTargetIsReached(ContainerCity container) {
+            PointF target = new PointF((float)container.X, (float)container.Y);
+            var dist = Distance(getCurrentPosition(), target);
+            // If the distance is close enough to the target by 9 cm we are saying that it is more than enough.
+            // The reason is because we are doing regular single movement step by 10cm.
+            return dist <= 0.09;
+        }
+        // Move the drone forward.
+        public void moveFORWARD()
+        {
+            attachCommand(new MOTION_COMMAND() { motion = MOTIONS.MOVE_FORWARD, position = getCurrentPosition() });
+        }
+        // Move the drone backwards.
+        public void moveBACKWARDS()
+        {
+            attachCommand(new MOTION_COMMAND() { motion = MOTIONS.MOVE_BACKWARD, position = getCurrentPosition() });
+        }
+        // Move the drone up to the specific height.
+        public void moveUP(double height)
+        {
+            attachCommand(new MOTION_COMMAND() { motion = MOTIONS.MOVE_UP, value = Math.Round(height, 3, MidpointRounding.ToEven).ToString() });
+        }
+        // Move the drone up to the specific height.
+        public void moveDOWN(double height)
+        {
+            attachCommand(new MOTION_COMMAND() { motion = MOTIONS.MOVE_DOWN, value = Math.Round(height, 3, MidpointRounding.ToEven).ToString() });
+        }
+        // Turn the drone to the left by specific yaw angle.
+        public void turnLEFT(double angle)
+        {
+            attachCommand(new MOTION_COMMAND() { motion = MOTIONS.TURN_LEFT, value = Math.Abs(angle).ToString() });
+        }
+        // Turn the drone to the right, by specific yaw angle.
+        public void turnRIGHT(double angle)
+        {
+            attachCommand(new MOTION_COMMAND() { motion = MOTIONS.TURN_RIGHT, value = Math.Abs(angle).ToString()});
+        }
+        // Calculate the distance between current position and the target point.
+        public static double Distance(PointF current, PointF target)
+        {
+            return Math.Sqrt(Math.Pow(target.X - current.X, 2) + Math.Pow(target.Y - current.Y, 2));
+        }
+        // Save the recoded commands to the file.
+        public void SaveCommandsToFile(List<MOTION_COMMAND> commands)
         {
             string FileName = "comamnds.txt";
             // Clear the OLD command log.
             File.WriteAllText(FileName, String.Empty);
             StreamWriter w = File.AppendText(FileName);
-            foreach (MOTION_COMMAND command in commands) {
+            foreach (MOTION_COMMAND command in commands)
+            {
                 Log(command.ToString(), w);
             }
         }
-
+        // Save the records for the movements.
+        public void SaveMovementsLog(List<MOTION_COMMAND> commands)
+        {
+            string FileName = "motionsLOG.txt";
+            // Create the coordinates changement log.
+            File.WriteAllText(FileName, String.Empty);
+            StreamWriter w = File.AppendText(FileName);
+            foreach (MOTION_COMMAND cmd in commands)
+            {
+                if (cmd.motion == MOTIONS.MOVE_FORWARD || cmd.motion == MOTIONS.MOVE_BACKWARD)
+                {
+                    Log(cmd.GetPositionString(), w);
+                }
+            }
+        }
+        // Write the the textwriter.
         public void Log(string command, TextWriter text)
         {
             text.WriteLine(command);
         }
+        #endregion
 
         // Generate new route, so draw it on Map.
         void ga_OnGenerationComplete(object sender, GAF.GaEventArgs e)
@@ -682,7 +830,18 @@ namespace MissionPlanner.GCSViews
         {
             // Play log data
             // 1. Open log file.
-            MainV2.comPort.
+            // Get the RC controller minimum and maximum values, so we will know the range between all the RC inputs.
+            var RC1_MIN = MainV2.comPort.GetParam("RC1_MIN");
+            var RC1_MAX = MainV2.comPort.GetParam("RC1_MAX");
+
+            var RC2_MIN = MainV2.comPort.GetParam("RC2_MIN");
+            var RC2_MAX = MainV2.comPort.GetParam("RC2_MAX");
+
+            var RC3_MIN = MainV2.comPort.GetParam("RC3_MIN");
+            var RC3_MAX = MainV2.comPort.GetParam("RC3_MAX");
+
+            var RC4_MIN = MainV2.comPort.GetParam("RC4_MIN");
+            var RC4_MAX = MainV2.comPort.GetParam("RC4_MAX");
         }
 
     }

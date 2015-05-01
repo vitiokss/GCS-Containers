@@ -277,13 +277,6 @@
     <Compile Include="CodeGen.cs" />
     <Compile Include="Comms\CommsSerialScan.cs" />
     <Compile Include="Comms\MAVLinkSerialPort.cs" />
-    <Compile Include="Containers\TSP\Link.cs" />
-    <Compile Include="Containers\TSP\Node.cs" />
-    <Compile Include="Containers\TSP\Nodes.cs" />
-    <Compile Include="Containers\TSP\Population.cs" />
-    <Compile Include="Containers\TSP\Route.cs" />
-    <Compile Include="Containers\TSP\TSP.cs" />
-    <Compile Include="Containers\TSP\TspEventArgs.cs" />
     <Compile Include="Containers\TSP_GA\ContainerCity.cs" />
     <Compile Include="Controls\ConnectionControl.cs">
       <SubType>UserControl</SubType>
