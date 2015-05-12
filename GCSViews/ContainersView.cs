@@ -152,6 +152,9 @@ namespace MissionPlanner.GCSViews
         double GOT_Y;
         double GOT_Z;
 
+        static double GOT_X_initial;
+        static double GOT_Y_initial;
+
         public ContainersView()
         {
             InitializeComponent();
@@ -235,7 +238,10 @@ namespace MissionPlanner.GCSViews
                         GOT_Z = position.Position.Z / 1000;
                         xCoordinateTxt.Text = string.Format("X: {0}", GOT_X);
                         yCoordinateTxt.Text = string.Format("Y: {0}", GOT_Y);
-                        zCoordinateTxt.Text = string.Format("Z: {0}", GOT_Z);
+                        zLabel.Text = string.Format("Z: {0}", GOT_Z);
+
+                        GOT_X_initial = GOT_X;
+                        GOT_Y_initial = GOT_Y;
                     }
 
                     //MessageBox.Show(string.Format("{0} - {1} - {2}", position.Position.X, position.Position.Y, position.Position.Z));
@@ -271,6 +277,7 @@ namespace MissionPlanner.GCSViews
             }
             this.gotCalibrateBtn.Enabled = this.CalibratorTriangleDetected;
         }
+
         // Event handler on new receiver connected.
         void gotMaster_OnNewReceiverConnected(Receiver receiver)
         {
@@ -509,10 +516,10 @@ namespace MissionPlanner.GCSViews
             // Override the selected containers with the test containers we are using in the IntermediaLab.
             List<PointF> targets = new List<PointF>();
             //Record the target points.
-            targets.Add(new PointF(1.075f, 0.452f));
-            targets.Add(new PointF(1.747f, 1.435f));
-            targets.Add(new PointF(0.334f, 1.99f));
-            targets.Add(new PointF(1.177f, 3.124f));
+            targets.Add(new PointF(1.092f, 0.355f));
+            targets.Add(new PointF(1.8f, 1.418f));
+            targets.Add(new PointF(0.3f, 1.952f));
+            targets.Add(new PointF(1.505f, 3.210f));
             int idx = 0;
             foreach (var c in selectedContainers)
             {
@@ -532,9 +539,9 @@ namespace MissionPlanner.GCSViews
             // contain each city only once. Therefore, our chromosome will contain all the integers betwwen 0 and 15 with no duplicates.
 
             // 100 is our population so create the population
-            var population = new GAF.Population(100);
+            var population = new GAF.Population(1000);
             // create the chromosomes
-            for (var p = 0; p < 100; p++)
+            for (var p = 0; p < 1000; p++)
             {
                 var chromosome = new GAF.Chromosome();
                 for (var g = 0; g < _targets.Count; g++)
@@ -546,7 +553,7 @@ namespace MissionPlanner.GCSViews
             }
 
             // create the elite operator.
-            var elite = new Elite(5);
+            var elite = new Elite(10);
 
             // create the crossover operator.
             var crossover = new Crossover(0.8)
@@ -594,6 +601,7 @@ namespace MissionPlanner.GCSViews
             foreach (var gene in fittest.Genes)
             {
                 targetPoints.Add(_targets[(int)gene.RealValue]);
+                MessageBox.Show(_targets[(int)gene.RealValue].Name);
             }
             if (targetPoints.Count > 0)
             {
@@ -601,10 +609,22 @@ namespace MissionPlanner.GCSViews
                 navigateDrone.Start();
             }
         }
+
+        public void yawUpdate()
+        {
+            while (true) {
+                if (MainV2.comPort.MAV.cs.yaw != null)
+                {
+                    yawLbl.Text = "YAW: " + MainV2.comPort.MAV.cs.yaw.ToString();
+                }
+            }
+        }
+
         #region DRONE_NAVIGATION
         // Main function which will create the navigation commands route for the drone.
         public void NavigateTheDrone(List<ContainerCity> containersList)
         {
+            csv.Clear();
             // Take off to the specific height, above all the containers.
             var operatingHeight = 2.59 * CargoShip.tierIndex(CargoShip.LastTierNumber);
             attachCommand(new MOTION_COMMAND() { motion = MOTIONS.TAKE_OFF, value = operatingHeight.ToString() });
@@ -617,6 +637,7 @@ namespace MissionPlanner.GCSViews
             var SINGLE_STEP = Distance(calibratePosition_A, calibratePosition_B);
             foreach (ContainerCity container in containersList)
             {
+                MessageBox.Show("SELECT container :" + container.Name);
                 // Repeat commands while we reach the target container.
                 while (!bTargetIsReached(container))
                 {
@@ -627,17 +648,22 @@ namespace MissionPlanner.GCSViews
                     moveFORWARD();
                 }
                 // Container reached, go down to the height of the container to scan.
+                MessageBox.Show("CONTAINER REACHED, SCAN");
                 commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MOVE_DOWN, value = (container.Z).ToString()});
                 commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.SCAN });
                 commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MOVE_UP, value = (operatingHeight).ToString() });
             }
             // Land the drone.
-            commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.LAND });
+            commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MODE_RTL });
             // Add all the recorded commands to the file.
+            MessageBox.Show("SAVING COMMANDS TO FILE, DONE");
+            File.WriteAllText("POSITION_GOT_AND_COMMANDS.csv", csv.ToString());
             SaveCommandsToFile(commandsList);
-            SaveMovementsLog(commandsList);
             Thread.CurrentThread.Abort();
         }
+
+        StringBuilder csv = new StringBuilder();
+
         // Attaching movement comamnds to the list.
         public void attachCommand(MOTION_COMMAND cmd)
         {
@@ -645,9 +671,12 @@ namespace MissionPlanner.GCSViews
             this.Invoke((MethodInvoker)delegate {
                 commandLabel.Text = cmd.ToString();
             });
-            // Tell what command to do.
+
             if (MessageBox.Show(cmd.ToString(), "Complete the following movement?", MessageBoxButtons.OKCancel) == DialogResult.OK)
             {
+                // Log the position also.
+                PointF position = getCurrentPosition();
+                csv.AppendLine(string.Format("{0};{1};{2};", cmd.ToString(), position.X, position.Y));
                 // Add the movement command to list.
                 commandsList.Add(cmd);
             }
@@ -671,7 +700,7 @@ namespace MissionPlanner.GCSViews
             PointF target = new PointF((float)container.X, (float)container.Y);
             var angleToTarget = getAngleBetween2Points(getCurrentPosition(), target);
             var turnAngle = Math.Round(currentAngle - (angleToTarget));
-            if (turnAngle > 1)
+            if (Math.Abs(turnAngle) > 1)
             {
                 if (currentAngle < angleToTarget)
                 {
@@ -695,7 +724,7 @@ namespace MissionPlanner.GCSViews
             var dist = Distance(getCurrentPosition(), target);
             // If the distance is close enough to the target by 9 cm we are saying that it is more than enough.
             // The reason is because we are doing regular single movement step by 10cm.
-            return dist <= 0.09;
+            return dist <= 0.1;
         }
         // Move the drone forward.
         public void moveFORWARD()
@@ -741,8 +770,9 @@ namespace MissionPlanner.GCSViews
             StreamWriter w = File.AppendText(FileName);
             foreach (MOTION_COMMAND command in commands)
             {
-                Log(command.ToString(), w);
+                w.WriteLine(command.ToString());
             }
+            w.Close();
         }
         // Save the records for the movements.
         public void SaveMovementsLog(List<MOTION_COMMAND> commands)
@@ -826,23 +856,6 @@ namespace MissionPlanner.GCSViews
             }
         }
 
-        private void myButton2_Click(object sender, EventArgs e)
-        {
-            // Play log data
-            // 1. Open log file.
-            // Get the RC controller minimum and maximum values, so we will know the range between all the RC inputs.
-            var RC1_MIN = MainV2.comPort.GetParam("RC1_MIN");
-            var RC1_MAX = MainV2.comPort.GetParam("RC1_MAX");
-
-            var RC2_MIN = MainV2.comPort.GetParam("RC2_MIN");
-            var RC2_MAX = MainV2.comPort.GetParam("RC2_MAX");
-
-            var RC3_MIN = MainV2.comPort.GetParam("RC3_MIN");
-            var RC3_MAX = MainV2.comPort.GetParam("RC3_MAX");
-
-            var RC4_MIN = MainV2.comPort.GetParam("RC4_MIN");
-            var RC4_MAX = MainV2.comPort.GetParam("RC4_MAX");
-        }
 
     }
 }

@@ -39,13 +39,12 @@
             this.receiversList = new System.Windows.Forms.ListBox();
             this.gotConnectionStatusLbl = new MissionPlanner.Controls.MyLabel();
             this.gotConnect = new MissionPlanner.Controls.MyButton();
-            this.zCoordinateTxt = new MissionPlanner.Controls.MyLabel();
+            this.zLabel = new MissionPlanner.Controls.MyLabel();
             this.yCoordinateTxt = new MissionPlanner.Controls.MyLabel();
             this.xCoordinateTxt = new MissionPlanner.Controls.MyLabel();
             this.droneGroup = new System.Windows.Forms.GroupBox();
             this.commandLabel = new MissionPlanner.Controls.MyLabel();
             this.containersGroup = new System.Windows.Forms.GroupBox();
-            this.mBayMap = new MissionPlanner.GCSViews.ContainerView.BaysMap();
             this.importContainersLoadingBtn = new MissionPlanner.Controls.MyButton();
             this.importContainersStructureLbl = new MissionPlanner.Controls.MyLabel();
             this.importStructureBtn = new MissionPlanner.Controls.MyButton();
@@ -54,6 +53,8 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.myButton2 = new MissionPlanner.Controls.MyButton();
+            this.mBayMap = new MissionPlanner.GCSViews.ContainerView.BaysMap();
+            this.yawLbl = new MissionPlanner.Controls.MyLabel();
             this.GOTGroup.SuspendLayout();
             this.groupGotTransmitters.SuspendLayout();
             this.groupGotReceivers.SuspendLayout();
@@ -183,15 +184,14 @@
             this.gotConnect.UseVisualStyleBackColor = true;
             this.gotConnect.Click += new System.EventHandler(this.gotConnect_Click);
             // 
-            // zCoordinateTxt
+            // zLabel
             // 
-            this.zCoordinateTxt.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.zCoordinateTxt.Location = new System.Drawing.Point(11, 21);
-            this.zCoordinateTxt.Name = "zCoordinateTxt";
-            this.zCoordinateTxt.resize = false;
-            this.zCoordinateTxt.Size = new System.Drawing.Size(369, 25);
-            this.zCoordinateTxt.TabIndex = 2;
-            this.zCoordinateTxt.Text = "MOVE_FORWARD";
+            this.zLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.zLabel.Location = new System.Drawing.Point(11, 21);
+            this.zLabel.Name = "zLabel";
+            this.zLabel.resize = false;
+            this.zLabel.Size = new System.Drawing.Size(369, 25);
+            this.zLabel.TabIndex = 2;
             // 
             // yCoordinateTxt
             // 
@@ -213,8 +213,9 @@
             // 
             // droneGroup
             // 
+            this.droneGroup.Controls.Add(this.yawLbl);
             this.droneGroup.Controls.Add(this.commandLabel);
-            this.droneGroup.Controls.Add(this.zCoordinateTxt);
+            this.droneGroup.Controls.Add(this.zLabel);
             this.droneGroup.Controls.Add(this.yCoordinateTxt);
             this.droneGroup.Controls.Add(this.xCoordinateTxt);
             this.droneGroup.Location = new System.Drawing.Point(429, 10);
@@ -246,14 +247,6 @@
             this.containersGroup.TabIndex = 2;
             this.containersGroup.TabStop = false;
             this.containersGroup.Text = "Containers information";
-            // 
-            // mBayMap
-            // 
-            this.mBayMap.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mBayMap.Location = new System.Drawing.Point(3, 16);
-            this.mBayMap.Name = "mBayMap";
-            this.mBayMap.Size = new System.Drawing.Size(891, 218);
-            this.mBayMap.TabIndex = 0;
             // 
             // importContainersLoadingBtn
             // 
@@ -337,7 +330,25 @@
             this.myButton2.TabIndex = 6;
             this.myButton2.Text = "Play log data";
             this.myButton2.UseVisualStyleBackColor = true;
-            this.myButton2.Click += new System.EventHandler(this.myButton2_Click);
+            // 
+            // mBayMap
+            // 
+            this.mBayMap.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mBayMap.Location = new System.Drawing.Point(3, 16);
+            this.mBayMap.Name = "mBayMap";
+            this.mBayMap.Size = new System.Drawing.Size(891, 218);
+            this.mBayMap.TabIndex = 0;
+            // 
+            // yawLbl
+            // 
+            this.yawLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.yawLbl.ForeColor = System.Drawing.Color.Coral;
+            this.yawLbl.Location = new System.Drawing.Point(11, 128);
+            this.yawLbl.Name = "yawLbl";
+            this.yawLbl.resize = false;
+            this.yawLbl.Size = new System.Drawing.Size(202, 23);
+            this.yawLbl.TabIndex = 4;
+            this.yawLbl.Text = "Yaw: ";
             // 
             // ContainersView
             // 
@@ -390,7 +401,7 @@
         private Controls.MyButton importContainersLoadingBtn;
         private ContainerView.BaysMap mBayMap;
         private System.Windows.Forms.Label lblHoveredEelement;
-        private Controls.MyLabel zCoordinateTxt;
+        private Controls.MyLabel zLabel;
         private Controls.MyLabel yCoordinateTxt;
         private Controls.MyLabel xCoordinateTxt;
         private System.Windows.Forms.GroupBox groupBox1;
@@ -398,6 +409,7 @@
         private Controls.MyButton myButton1;
         private Controls.MyButton myButton2;
         private Controls.MyLabel commandLabel;
+        private Controls.MyLabel yawLbl;
 
     }
 }
