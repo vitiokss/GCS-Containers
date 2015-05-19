@@ -983,7 +983,8 @@ namespace MissionPlanner.GCSViews
                         if (route.Points.Count > int.Parse(MainV2.config["NUM_tracklength"].ToString()))
                         {
                             //  trackPoints.RemoveRange(0, trackPoints.Count - int.Parse(MainV2.config["NUM_tracklength"].ToString()));
-                            route.Points.RemoveRange(0, route.Points.Count - int.Parse(MainV2.config["NUM_tracklength"].ToString()));
+                            // TODO: VIKTORAS COMMENTED OUT TO SEE THE FLIGHT HISTORY
+                            //route.Points.RemoveRange(0, route.Points.Count - int.Parse(MainV2.config["NUM_tracklength"].ToString()));
                         }
                         // add new route point
                         if (MainV2.comPort.MAV.cs.lat != 0)

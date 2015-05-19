@@ -163,20 +163,24 @@ namespace MissionPlanner.GCSViews.ContainerView
             List<ContainerObject> ContainerList = new List<ContainerObject>();
 
             OddBay = EvenBay = null;
-
+            int both = 0;
             foreach (BayObject bay in mVessel.BaysList)
             {
                 if (bay.GetNumber() == this.mSelectedOddBay)
                 {
                     OddBay = bay;
                     ContainerList.AddRange(bay.ContainerList);
+                    both++;
                 }
 
                 if (bay.GetNumber() == this.mSelectedEventBay)
                 {
                     EvenBay = bay;
                     ContainerList.AddRange(bay.ContainerList);
+                    both++;
                 }
+
+                if (both == 2) {break;}
             }
 
             if (OddBay == null)

@@ -10,10 +10,10 @@ using System.Xml.Linq;
 
 namespace MissionPlanner.Containers
 {
-    public class Vessel
+    public class Vessel : ContainerStructure
     {
         // Holds all the containers on the vessel.
-        public List<ContainerObject> ContainersList = new List<ContainerObject>();
+        //public List<ContainerObject> ContainersList = new List<ContainerObject>();
         // Holds all the containers details in bays.
         public List<BayObject> BaysList = new List<BayObject>();
 
@@ -31,10 +31,10 @@ namespace MissionPlanner.Containers
         }
 
         // Function to add the container to the list.
-        public void AddContainerToList(ContainerObject _container)
-        {
-            this.ContainersList.Add(_container);
-        }
+        //public void AddContainerToList(ContainerObject _container)
+        //{
+        //    this.ContainersList.Add(_container);
+        //}
 
         public void AddBaysToList(BayObject _bay)
         {
@@ -43,7 +43,7 @@ namespace MissionPlanner.Containers
 
         public bool isStructureLoaded()
         {
-            return this.ContainersList.Count > 0 && this.BaysList.Count > 0;
+            return ContainerList.Count > 0 && this.BaysList.Count > 0;
         }
 
         public void GenerateContainersFile(List<BayObject> _bay)
@@ -70,7 +70,7 @@ namespace MissionPlanner.Containers
         public void LoadContainersStructureFromXML(string filename)
         {
             BaysList.Clear();
-            ContainersList.Clear();
+            ContainerList.Clear();
             XDocument xml = XDocument.Load(filename);
             xml.Descendants("Bay").Select(x => new
             {
@@ -122,7 +122,10 @@ namespace MissionPlanner.Containers
                             Bay.MaxRow = tier.Row;
                         }
                         // Save the top tier number.
-                        Bay.MaxTier = tier.LastTier;
+                        if (Bay.MaxTier < tier.LastTier)
+                        {
+                            Bay.MaxTier = tier.LastTier;
+                        }
                         // Create the container as a unit object.
                         ContainerObject Container = new ContainerObject(Bay, tier.Row, t, width, length);
                         // Attach container object to the bay object.
@@ -151,7 +154,7 @@ namespace MissionPlanner.Containers
         /// <returns></returns>
         protected bool containerIsPlaced(int bay, int tier, int row)
         {
-            return this.ContainersList.Exists(x => x.Bay.Equals(bay) && x.Tier.Equals(tier) && x.Row.Equals(row) && x.containerLoaded);
+            return ContainerList.Exists(x => x.Bay.Equals(bay) && x.Tier.Equals(tier) && x.Row.Equals(row) && x.containerLoaded);
         }
 
         // This function will calculate all the coordinates for container inspection.
@@ -395,7 +398,7 @@ namespace MissionPlanner.Containers
             {
                 foreach (var item in d.Containers)
                 {
-                    ContainerObject container = this.ContainersList.Find(i => i.BayNumberString == d.Name && i.Row == item.Row && i.Tier == item.Tier);
+                    ContainerObject container = ContainerList.Find(i => i.BayNumberString == d.Name && i.Row == item.Row && i.Tier == item.Tier);
                     container.containerLoaded = item.Loaded;
                 }
             });

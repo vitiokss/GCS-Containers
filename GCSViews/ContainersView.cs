@@ -22,11 +22,18 @@ using MissionPlanner.Containers.TSP_GA;
 using GAF.Extensions;
 using GAF.Operators;
 using GAF.Threading;
+using MissionPlanner.Containers.TSP;
 
 namespace MissionPlanner.GCSViews
 {
     public partial class ContainersView : MyUserControl, IActivate, INotifyPropertyChanged
     {
+        // Global variables.
+        // Vessel main data structure.
+        private Vessel CargoShip = new Vessel();
+        private Font font = new Font("Verdana", 8, FontStyle.Regular);
+
+        #region MOTIONCOMMANDS
         // Define all posible motions.
         public enum MOTIONS {
             TAKE_OFF,
@@ -101,14 +108,9 @@ namespace MissionPlanner.GCSViews
             }
         }
 
-
-        double operatingHeight = 0;
-
-        bool keepOperatingHeight = false;
-        bool missionStarted = false;
-
         List<MOTION_COMMAND> commandsList = new List<MOTION_COMMAND>();
-
+        #endregion
+        #region GAMES_ON_TRACK
         // Master node version.
         public string MasterVersion { get { return this.masterVersion; } set { this.masterVersion = value; OnPropertyChanged("MasterVersion"); } }
         private string masterVersion = "Unknown";
@@ -138,15 +140,6 @@ namespace MissionPlanner.GCSViews
 
         // The currect scenario to use for position calculation and display.
         private Scenario3D currentScenario;
-        private Vessel CargoShip = new Vessel();
-        // TSP related stuff.
-        //Nodes nodesList = new Nodes();
-        //TSP tsp;
-        Image TSP_Image;
-        private static List<ContainerCity> _targets;
-        Graphics TSP_Graphics;
-        private Font font = new Font("Verdana", 8, FontStyle.Regular);
-
         // Coordinates.
         double GOT_X;
         double GOT_Y;
@@ -154,38 +147,21 @@ namespace MissionPlanner.GCSViews
 
         static double GOT_X_initial;
         static double GOT_Y_initial;
-
-        public ContainersView()
+        
+        // Restart the games on track system.
+        private void myButton1_Click(object sender, EventArgs e)
         {
-            InitializeComponent();
-
-            this.ConnectedTransmitters = new ObservableCollection<Transmitter>();
-            this.ConnectedReceivers = new ObservableCollection<Receiver>();
-            this.Scenarios = new ObservableCollection<Scenario3D>();
-            this.CalibrationTransmitters = new ObservableCollection<Transmitter>();
-
-            this.gotMaster = new Master2X(WindowsFormsSynchronizationContext.Current);
-            this.gotMaster.OnMasterStatusChanged += gotMaster_OnMasterStatusChanged;
-            this.gotMaster.OnNewReceiverConnected += gotMaster_OnNewReceiverConnected;
-            this.gotMaster.OnNewTransmitterConnected += gotMaster_OnNewTransmitterConnected;
-            this.gotMaster.OnMeasurementReceived += gotMaster_OnMeasurementReceived;
-
-            TryOpenLastCalibration();
-            
-            //this.containerMapCtrl.onContainerSelected += containerMapCtrl_onContainerSelected;
-            //this.containerMapCtrl.onContainerUnselected += containerMapCtrl_onContainerUnselected;
-
-            // Save the clicks to the file pickers by passing the file pathes directly.
-            CargoShip.LoadContainersStructureFromXML("C:\\Project\\MissionPlanner\\Data_Files\\Vessel Structure.xml");
-            CargoShip.LoadContainersPlacement("C:\\Project\\MissionPlanner\\Data_Files\\loadingData.xml");
-
-            // Link the vissel in the ContainerView user control to the BayMap User Control.
-            this.mBayMap.setVessel(CargoShip);
-
-            this.mBayMap.BayHovered += mBayMap_BayHovered;
-            this.mBayMap.ContainerHovered += mBayMap_ContainerHovered;
+            if (this.gotMaster != null && this.gotMaster.Status != MasterStatus.Offline)
+            {
+                this.gotMaster.RequestRestart();
+                this.ConnectedReceivers.Clear();
+                this.receiversList.Items.Clear();
+                this.transmittersList.Items.Clear();
+                this.ConnectedTransmitters.Clear();
+            }
         }
 
+        // Open last calibration of GOT.
         private void TryOpenLastCalibration()
         {
             if (File.Exists(ScenarioFilePath))
@@ -205,16 +181,7 @@ namespace MissionPlanner.GCSViews
                 }
             }
         }
-        // Event handler change the info string on which container mouse is placed.
-        void mBayMap_ContainerHovered(object sender, ContainerObject container)
-        {
-            this.lblHoveredEelement.Text = container.ToString();
-        }
-        // Event handler to change the string on which the mouse is hovered.
-        void mBayMap_BayHovered(object sender, BayObject bay)
-        {
-            this.lblHoveredEelement.Text = bay.ToString();
-        }
+
         // Event handler on new measurement received.
         void gotMaster_OnMeasurementReceived(Measurement measurement)
         {
@@ -248,6 +215,7 @@ namespace MissionPlanner.GCSViews
                 }
             }
         }
+
         // Event handler on new transmitter connected.
         void gotMaster_OnNewTransmitterConnected(Transmitter transmitter)
         {
@@ -260,7 +228,8 @@ namespace MissionPlanner.GCSViews
                 }
                 else
                 {
-                    if (!this.CalibrationTransmitters.Any(t => t.GOTAddress == transmitter.GOTAddress)) {
+                    if (!this.CalibrationTransmitters.Any(t => t.GOTAddress == transmitter.GOTAddress))
+                    {
                         this.CalibrationTransmitters.Add(transmitter);
                     }
                 }
@@ -272,7 +241,8 @@ namespace MissionPlanner.GCSViews
             }
 
             // Check if transmitters composing a calibration trangle has been connected.
-            if (!this.CalibratorTriangleDetected) {
+            if (!this.CalibratorTriangleDetected)
+            {
                 this.CalibratorTriangleDetected = CalibratorTriangle.TryFindCalibratorTriangle(this.CalibrationTransmitters.Select(s => s.GOTAddress), out this.calibratorTriangle);
             }
             this.gotCalibrateBtn.Enabled = this.CalibratorTriangleDetected;
@@ -281,13 +251,14 @@ namespace MissionPlanner.GCSViews
         // Event handler on new receiver connected.
         void gotMaster_OnNewReceiverConnected(Receiver receiver)
         {
-            if (!this.ConnectedReceivers.Any( r => r.GOTAddress == receiver.GOTAddress))
+            if (!this.ConnectedReceivers.Any(r => r.GOTAddress == receiver.GOTAddress))
             {
                 gotMaster.SetTransmitterState(receiver.GOTAddress, true, Transmitter.UltraSonicLevel.High);
                 this.ConnectedReceivers.Add(receiver);
                 this.receiversList.Items.Add(string.Format("{0} - {1}", receiver.GOTAddress, receiver.FirmwareVersion));
             }
         }
+
         // Event handler on status changed in the GOT.
         void gotMaster_OnMasterStatusChanged(IMaster master, MasterStatus newStatus)
         {
@@ -309,28 +280,6 @@ namespace MissionPlanner.GCSViews
             }
         }
 
-        public void Activate()
-        {
-            // Activate view
-            Console.Beep();
-        }
-
-        public static double getAngleBetween2Points(PointF start, PointF target)
-        {
-            float xDiff = target.X - start.X;
-            float yDiff = target.Y - start.Y;
-            double angle = Math.Atan2(yDiff, xDiff);
-            return Math.Atan2(yDiff, xDiff) * (180 / Math.PI);
-        }
-
-        #region INotifyPropertyChanged Members
-        public event PropertyChangedEventHandler PropertyChanged = delegate { };
-        private void OnPropertyChanged(string propertyName)
-        {
-            this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-        }
-        #endregion
-
         // Connect to the Games on track position system.
         private void gotConnect_Click(object sender, EventArgs e)
         {
@@ -340,7 +289,7 @@ namespace MissionPlanner.GCSViews
                 gotConnect.Text = "Connect";
                 return;
             }
-            
+
             // Try to connect. This will return false immediately if it fails to find the proper USB port.
             // Otherwise, it will begin connecting and the "Master2X.OnMasterStatusChanged" event will be invoked.
             if (!this.gotMaster.BeginConnect())
@@ -354,6 +303,7 @@ namespace MissionPlanner.GCSViews
 
 
         }
+        
         // Calibrate the Games on track system.
         private void gotCalibrateBtn_Click(object sender, EventArgs e)
         {
@@ -377,12 +327,14 @@ namespace MissionPlanner.GCSViews
                 calibrationDialog = null;
             }
         }
+        
         // Save the calibration scenario into the file.
         private void SaveScenariosToFile()
         {
             var doc = Scenario3DPersistence.Save(this.Scenarios);
             doc.Save(ScenarioFilePath, System.Xml.Linq.SaveOptions.None);
         }
+        
         // Enable/disable all 3 transmitters in the calibration triangle.
         private void SetCalibratorTriangleTransmitterStatus(bool enabled)
         {
@@ -394,6 +346,77 @@ namespace MissionPlanner.GCSViews
                 }
             }
         }
+
+        #endregion
+
+        //TSP tsp;
+        Image TSP_Image;
+
+        private static List<ContainerCity> _targets;
+        Graphics TSP_Graphics;
+
+        public ContainersView()
+        {
+            InitializeComponent();
+
+            this.ConnectedTransmitters = new ObservableCollection<Transmitter>();
+            this.ConnectedReceivers = new ObservableCollection<Receiver>();
+            this.Scenarios = new ObservableCollection<Scenario3D>();
+            this.CalibrationTransmitters = new ObservableCollection<Transmitter>();
+
+            this.gotMaster = new Master2X(WindowsFormsSynchronizationContext.Current);
+            this.gotMaster.OnMasterStatusChanged += gotMaster_OnMasterStatusChanged;
+            this.gotMaster.OnNewReceiverConnected += gotMaster_OnNewReceiverConnected;
+            this.gotMaster.OnNewTransmitterConnected += gotMaster_OnNewTransmitterConnected;
+            this.gotMaster.OnMeasurementReceived += gotMaster_OnMeasurementReceived;
+
+            TryOpenLastCalibration();
+            
+            // Save the clicks to the file pickers by passing the file pathes directly.
+            CargoShip.LoadContainersStructureFromXML("C:\\Project\\MissionPlanner\\Data_Files\\Vessel Structure.xml");
+            CargoShip.LoadContainersPlacement("C:\\Project\\MissionPlanner\\Data_Files\\loadingData.xml");
+
+            // Link the vissel in the ContainerView user control to the BayMap User Control.
+            this.mBayMap.setVessel(CargoShip);
+
+            this.mBayMap.BayHovered += mBayMap_BayHovered;
+            this.mBayMap.ContainerHovered += mBayMap_ContainerHovered;
+        }
+
+        // Event handler change the info string on which container mouse is placed.
+        void mBayMap_ContainerHovered(object sender, ContainerObject container)
+        {
+            this.lblHoveredEelement.Text = container.ToString();
+        }
+        
+        // Event handler to change the string on which the mouse is hovered.
+        void mBayMap_BayHovered(object sender, BayObject bay)
+        {
+            this.lblHoveredEelement.Text = bay.ToString();
+        }
+        
+        public void Activate()
+        {
+            // Activate view
+            Console.Beep();
+        }
+
+        public static double getAngleBetween2Points(PointF start, PointF target)
+        {
+            float xDiff = target.X - start.X;
+            float yDiff = target.Y - start.Y;
+            double angle = Math.Atan2(yDiff, xDiff);
+            return Math.Atan2(yDiff, xDiff) * (180 / Math.PI);
+        }
+
+        #region INotifyPropertyChanged Members
+        public event PropertyChangedEventHandler PropertyChanged = delegate { };
+        private void OnPropertyChanged(string propertyName)
+        {
+            this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+
         // Import the containers structure from the XML file.
         private void importStructureBtn_Click(object sender, EventArgs e)
         {
@@ -494,7 +517,7 @@ namespace MissionPlanner.GCSViews
         private void scanBtn_Click(object sender, EventArgs e)
         {
             // Check if any container was selected from the list.
-            var selectedContainers = this.CargoShip.ContainersList.FindAll(x => x.Selected && x.containerLoaded);
+            var selectedContainers = CargoShip.ContainerList.FindAll(x => x.Selected && x.containerLoaded);
             if (selectedContainers.Count == 0)
             {
                 CustomMessageBox.Show("There are no containers selected for inspection!");
@@ -515,7 +538,7 @@ namespace MissionPlanner.GCSViews
 
             // Override the selected containers with the test containers we are using in the IntermediaLab.
             List<PointF> targets = new List<PointF>();
-            //Record the target points.
+            ////Record the target points.
             targets.Add(new PointF(1.092f, 0.355f));
             targets.Add(new PointF(1.8f, 1.418f));
             targets.Add(new PointF(0.3f, 1.952f));
@@ -528,54 +551,9 @@ namespace MissionPlanner.GCSViews
                 idx++;
             }
 
-            TSP(CargoShip);
+            ThreadPool.QueueUserWorkItem(new WaitCallback(BeginTsp));
         }
-        // Travelling salesman problem solving by using Genetic Algorithm.
-        public void TSP(Vessel cargo)
-        {
-            // Get target containers.
-            _targets = CreateTargets(CargoShip).ToList();
-            // Each city can be identified by an integer within the range 0-15 our chromosome is a special case as it needs to
-            // contain each city only once. Therefore, our chromosome will contain all the integers betwwen 0 and 15 with no duplicates.
 
-            // 100 is our population so create the population
-            var population = new GAF.Population(1000);
-            // create the chromosomes
-            for (var p = 0; p < 1000; p++)
-            {
-                var chromosome = new GAF.Chromosome();
-                for (var g = 0; g < _targets.Count; g++)
-                {
-                    chromosome.Genes.Add(new GAF.Gene(g));
-                }
-                chromosome.Genes.Shuffle();
-                population.Solutions.Add(chromosome);
-            }
-
-            // create the elite operator.
-            var elite = new Elite(10);
-
-            // create the crossover operator.
-            var crossover = new Crossover(0.8)
-            {
-                CrossoverType = CrossoverType.DoublePointOrdered
-            };
-
-            // create the mutation operator.
-            var mutate = new SwapMutate(0.02);
-
-            // create the GA
-            var ga = new GAF.GeneticAlgorithm(population, CalculateFitness);
-            // attach events.
-            ga.OnGenerationComplete += ga_OnGenerationComplete;
-            ga.OnRunComplete += ga_OnRunComplete;
-            // add the operators.
-            ga.Operators.Add(elite);
-            ga.Operators.Add(crossover);
-            ga.Operators.Add(mutate);
-            // run the Genetic Algorithm.
-            ga.Run(Factorial(_targets.Count));
-        }
         // Function to count numbers factorial.
         static int Factorial(int n)
         {
@@ -588,43 +566,124 @@ namespace MissionPlanner.GCSViews
             }
             return result;
         }
-        // Then the shortest path is founded.
-        void ga_OnRunComplete(object sender, GAF.GaEventArgs e)
+        Cities cityList = new Cities();
+
+        private void BeginTsp(Object stateInfo)
         {
-            var fittest = e.Population.GetTop(1)[0];
-            // Initialize the drone flight according to the best route.
-            MessageBox.Show("Route planning is done, starting the drone");
-            // 1. Get the orientation by making fake move.
-            // 2. Calculate the differenct and move back to the initial position.
-            // 3. When we have already the position we can
-            List<ContainerCity> targetPoints = new List<ContainerCity>();
-            foreach (var gene in fittest.Genes)
+            var selectedContainers = CargoShip.ContainerList.FindAll(x => x.Selected && x.containerLoaded);
+            foreach (var container in selectedContainers)
             {
-                targetPoints.Add(_targets[(int)gene.RealValue]);
-                MessageBox.Show(_targets[(int)gene.RealValue].Name);
+                cityList.Add(new City(container.X, container.Y, container.Z, container.Name, container.Bay, container.Row));
             }
-            if (targetPoints.Count > 0)
-            {
-                Thread navigateDrone = new Thread(() => NavigateTheDrone(targetPoints));
-                navigateDrone.Start();
-            }
+            cityList.CalculateCityDistances(5);
+            Tsp tsp = new Tsp();
+            tsp.foundNewBestTour += new Tsp.NewBestTourEventHandler(tsp_foundNewBestTour);
+            tsp.Begin(10000, Factorial(cityList.Count), 5, 3, 0, 90, cityList);
+            tsp = null;
         }
 
-        public void yawUpdate()
+        /// <summary>
+        /// A new "best" tour from the TSP algorithm has been received.
+        /// Draw the tour on the form, and update a couple of status labels.
+        /// </summary>
+        /// <param name="sender">Object that generated this event.</param>
+        /// <param name="e">Event arguments.</param>
+        public void DrawTour(object sender, TspEventArgs e)
         {
-            while (true) {
-                if (MainV2.comPort.MAV.cs.yaw != null)
+            if (TSP_Image == null)
+            {
+                TSP_Image = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+                TSP_Graphics = Graphics.FromImage(TSP_Image);
+            }
+
+            int lastCity = 0;
+            int nextCity = e.BestTour[0].Connection1;
+
+            TSP_Graphics.FillRectangle(Brushes.White, 0, 0, TSP_Image.Width, TSP_Image.Height);
+            foreach (City city in e.CityList)
+            {
+                var xoffset = CargoShip.rowIndex(cityList[lastCity].RowId) * 20;
+                var yoffset = CargoShip.bayIndex(cityList[lastCity].BayId) * 4;
+
+                var nextxoffset = CargoShip.rowIndex(cityList[nextCity].RowId) * 20;
+                var nextyoffset = CargoShip.bayIndex(cityList[nextCity].BayId) * 4;
+                // Multiple by 10 just in case to render better on screen visually.
+                Point start_point = new Point((int)cityList[lastCity].X * 10 + xoffset, (int)cityList[lastCity].Y * 10 + yoffset);
+                Point next_point = new Point((int)cityList[nextCity].X * 10 + nextxoffset, (int)cityList[nextCity].Y * 10 + nextyoffset);
+
+                TSP_Graphics.DrawEllipse(Pens.Red, new Rectangle(start_point, new Size(5, 5)));
+                TSP_Graphics.DrawString(cityList[lastCity].Name, font, Brushes.Black, start_point);
+                TSP_Graphics.DrawLine(Pens.Green, start_point, next_point);
+
+                // figure out if the next city in the list is [0] or [1]
+                if (lastCity != e.BestTour[nextCity].Connection1)
                 {
-                    yawLbl.Text = "YAW: " + MainV2.comPort.MAV.cs.yaw.ToString();
+                    lastCity = nextCity;
+                    nextCity = e.BestTour[nextCity].Connection1;
+                }
+                else
+                {
+                    lastCity = nextCity;
+                    nextCity = e.BestTour[nextCity].Connection2;
+                }
+            }
+
+            this.pictureBox1.Image = TSP_Image;
+
+            if (e.Complete)
+            {
+                CustomMessageBox.Show("We can begin navigation!, Shortest path is found");
+                // 1. Get the orientation by making fake move.
+                // 2. Calculate the differenct and move back to the initial position.
+                // 3. When we have already the position we can
+                List<City> targetPoints = new List<City>();
+                foreach (City city in e.CityList)
+                {
+                    targetPoints.Add(city);
+                }
+                if (targetPoints.Count > 0)
+                {
+                    Thread navigateDrone = new Thread(() => NavigateTheDrone(targetPoints));
+                    navigateDrone.Start();
                 }
             }
         }
 
+        /// <summary>
+        /// Delegate for the thread that runs the TSP algorithm.
+        /// We use a separate thread so the GUI can redraw as the algorithm runs.
+        /// </summary>
+        /// <param name="sender">Object that generated this event.</param>
+        /// <param name="e">Event arguments.</param>
+        public delegate void DrawEventHandler(Object sender, TspEventArgs e);
+
+        void tsp_foundNewBestTour(object sender, TspEventArgs e)
+        {
+            if (this.InvokeRequired)
+            {
+                try
+                {
+                    this.Invoke(new DrawEventHandler(DrawTour), new object[] { sender, e });
+                    return;
+                }
+                catch (Exception)
+                {
+                    // This will fail when run as a control in IE due to a security exception.
+                }
+            }
+
+            DrawTour(sender, e);
+        }
+
         #region DRONE_NAVIGATION
+        StringBuilder csv = new StringBuilder();
+        StringBuilder navigationLocations = new StringBuilder();
         // Main function which will create the navigation commands route for the drone.
-        public void NavigateTheDrone(List<ContainerCity> containersList)
+        public void NavigateTheDrone(List<City> containersList)
         {
             csv.Clear();
+            navigationLocations.Clear();
+
             // Take off to the specific height, above all the containers.
             var operatingHeight = 2.59 * CargoShip.tierIndex(CargoShip.LastTierNumber);
             attachCommand(new MOTION_COMMAND() { motion = MOTIONS.TAKE_OFF, value = operatingHeight.ToString() });
@@ -635,7 +694,7 @@ namespace MissionPlanner.GCSViews
             moveBACKWARDS();
             double angle = getAngleBetween2Points(calibratePosition_A, calibratePosition_B);
             var SINGLE_STEP = Distance(calibratePosition_A, calibratePosition_B);
-            foreach (ContainerCity container in containersList)
+            foreach (City container in containersList)
             {
                 MessageBox.Show("SELECT container :" + container.Name);
                 // Repeat commands while we reach the target container.
@@ -648,22 +707,20 @@ namespace MissionPlanner.GCSViews
                     moveFORWARD();
                 }
                 // Container reached, go down to the height of the container to scan.
-                MessageBox.Show("CONTAINER REACHED, SCAN");
-                commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MOVE_DOWN, value = (container.Z).ToString()});
-                commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.SCAN });
-                commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MOVE_UP, value = (operatingHeight).ToString() });
+                MessageBox.Show("CONTAINER REACHED, LET START THE SCAN");
+                attachCommand(new MOTION_COMMAND() { motion = MOTIONS.MOVE_DOWN, value = (22).ToString()});
+                attachCommand(new MOTION_COMMAND() { motion = MOTIONS.SCAN });
+                attachCommand(new MOTION_COMMAND() { motion = MOTIONS.MOVE_UP, value = (operatingHeight).ToString() });
             }
             // Land the drone.
-            commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MODE_RTL });
+            attachCommand(new MOTION_COMMAND() { motion = MOTIONS.MODE_RTL });
             // Add all the recorded commands to the file.
             MessageBox.Show("SAVING COMMANDS TO FILE, DONE");
             File.WriteAllText("POSITION_GOT_AND_COMMANDS.csv", csv.ToString());
+            File.WriteAllText("TEST3.csv", navigationLocations.ToString());
             SaveCommandsToFile(commandsList);
             Thread.CurrentThread.Abort();
         }
-
-        StringBuilder csv = new StringBuilder();
-
         // Attaching movement comamnds to the list.
         public void attachCommand(MOTION_COMMAND cmd)
         {
@@ -679,15 +736,61 @@ namespace MissionPlanner.GCSViews
                 csv.AppendLine(string.Format("{0};{1};{2};", cmd.ToString(), position.X, position.Y));
                 // Add the movement command to list.
                 commandsList.Add(cmd);
+                Drone_movement(cmd);
             }
             else
             {
                 // Abort the flight, add command return to launch to savely land the drone.
                 commandsList.Add(new MOTION_COMMAND() { motion = MOTIONS.MODE_RTL });
+                Drone_movement(new MOTION_COMMAND() { motion = MOTIONS.MODE_RTL });
                 // Abort current thread.
                 Thread.CurrentThread.Abort();
             }
         }
+
+        public void Drone_movement(MOTION_COMMAND cmd) {
+            navigationLocations.AppendLine(string.Format("{0};{1};{2};", MainV2.comPort.MAV.cs.lat, MainV2.comPort.MAV.cs.lng, MainV2.comPort.MAV.cs.alt));
+            switch (cmd.motion)
+            {
+                case MOTIONS.MOVE_FORWARD:
+                    Drone_moveForward();
+                    break;
+                case MOTIONS.MOVE_BACKWARD:
+                    Drone_moveBackwards();
+                    break;
+                case MOTIONS.TURN_LEFT:
+                    Drone_turnLeft(Convert.ToDouble(cmd.value));
+                    break;
+                case MOTIONS.TURN_RIGHT:
+                    Drone_turnRight(Convert.ToDouble(cmd.value));
+                    break;
+                case MOTIONS.MOVE_UP:
+                    Drone_moveUp(Convert.ToDouble(cmd.value));
+                    break;
+                case MOTIONS.MOVE_DOWN:
+                    Drone_moveDown(Convert.ToDouble(cmd.value));
+                    break;
+                case MOTIONS.TAKE_OFF:
+                    Drone_takeOff(Convert.ToDouble(cmd.value));
+                    break;
+                case MOTIONS.MODE_RTL:
+                    SendRC(2, 0, true);
+	                SendRC(3, 0, true);
+	                SendRC(4, 0, true);
+                    changeFlightMode("RTL");
+                    break;
+                case MOTIONS.LAND:
+                    changeFlightMode("LAND");
+                    break;
+            }
+        }
+
+        public bool changeFlightMode(string mode)
+        {
+            MainV2.comPort.setMode(mode);
+            return true;
+        }
+
         // Get the current position of the drone in the Games on Track system.
         public PointF getCurrentPosition() {
             float x = (float)GOT_X;
@@ -695,7 +798,7 @@ namespace MissionPlanner.GCSViews
             return new PointF(x, y);
         }
         // Turn the drone towards the target point.
-        private double turnTowardsTargetPoint(double currentAngle, ContainerCity container)
+        private double turnTowardsTargetPoint(double currentAngle, City container)
         {
             PointF target = new PointF((float)container.X, (float)container.Y);
             var angleToTarget = getAngleBetween2Points(getCurrentPosition(), target);
@@ -719,7 +822,7 @@ namespace MissionPlanner.GCSViews
             return currentAngle;
         }
         // Check if we reach the target.
-        public bool bTargetIsReached(ContainerCity container) {
+        public bool bTargetIsReached(City container) {
             PointF target = new PointF((float)container.X, (float)container.Y);
             var dist = Distance(getCurrentPosition(), target);
             // If the distance is close enough to the target by 9 cm we are saying that it is more than enough.
@@ -761,6 +864,7 @@ namespace MissionPlanner.GCSViews
         {
             return Math.Sqrt(Math.Pow(target.X - current.X, 2) + Math.Pow(target.Y - current.Y, 2));
         }
+        
         // Save the recoded commands to the file.
         public void SaveCommandsToFile(List<MOTION_COMMAND> commands)
         {
@@ -774,6 +878,7 @@ namespace MissionPlanner.GCSViews
             }
             w.Close();
         }
+        
         // Save the records for the movements.
         public void SaveMovementsLog(List<MOTION_COMMAND> commands)
         {
@@ -789,71 +894,184 @@ namespace MissionPlanner.GCSViews
                 }
             }
         }
+        
         // Write the the textwriter.
         public void Log(string command, TextWriter text)
         {
             text.WriteLine(command);
         }
+
+        MAVLink.mavlink_rc_channels_override_t rc = new MAVLink.mavlink_rc_channels_override_t();
+
+        public bool SendRC(int channel, ushort pwm, bool sendnow)
+        {
+            switch (channel)
+            {
+                case 1:
+                    MainV2.comPort.MAV.cs.rcoverridech1 = pwm;
+                    rc.chan1_raw = pwm;
+                    break;
+                case 2:
+                    MainV2.comPort.MAV.cs.rcoverridech2 = pwm;
+                    rc.chan2_raw = pwm;
+                    break;
+                case 3:
+                    MainV2.comPort.MAV.cs.rcoverridech3 = pwm;
+                    rc.chan3_raw = pwm;
+                    break;
+                case 4:
+                    MainV2.comPort.MAV.cs.rcoverridech4 = pwm;
+                    rc.chan4_raw = pwm;
+                    break;
+                case 5:
+                    MainV2.comPort.MAV.cs.rcoverridech5 = pwm;
+                    rc.chan5_raw = pwm;
+                    break;
+                case 6:
+                    MainV2.comPort.MAV.cs.rcoverridech6 = pwm;
+                    rc.chan6_raw = pwm;
+                    break;
+                case 7:
+                    MainV2.comPort.MAV.cs.rcoverridech7 = pwm;
+                    rc.chan7_raw = pwm;
+                    break;
+                case 8:
+                    MainV2.comPort.MAV.cs.rcoverridech8 = pwm;
+                    rc.chan8_raw = pwm;
+                    break;
+            }
+
+            rc.target_component = MainV2.comPort.MAV.compid;
+            rc.target_system = MainV2.comPort.MAV.sysid;
+
+            if (sendnow)
+            {
+                MainV2.comPort.sendPacket(rc);
+                System.Threading.Thread.Sleep(20);
+                MainV2.comPort.sendPacket(rc);
+            }
+
+            return true;
+        }
+
+        // Move the drone forward.
+        public void Drone_moveForward()
+        {
+            SendRC(2, 1400, true);
+            System.Threading.Thread.Sleep(1000);
+            SendRC(2, 1500, true);
+        }
+
+        // Move the drone backwards.
+        public void Drone_moveBackwards()
+        {
+            SendRC(2, 1600, true);
+            System.Threading.Thread.Sleep(1000);
+            SendRC(2, 1500, true);
+        }
+
+        // Turn the drone to the left.
+        public void Drone_turnLeft(double angle)
+        {
+            double initYaw = MainV2.comPort.MAV.cs.yaw;
+            double turnedAngle = 0;
+            while (turnedAngle < angle)
+            {
+                SendRC(4, 1450, true);
+                System.Threading.Thread.Sleep(500);
+                SendRC(4, 1500, true);
+                double currentYaw = MainV2.comPort.MAV.cs.yaw;
+                if (currentYaw > initYaw)
+                {
+                    turnedAngle += 360 - currentYaw + initYaw;
+                }
+                else {
+                    turnedAngle += initYaw - currentYaw;
+                }
+                initYaw = currentYaw;
+            }
+        }
+
+        // Turn the drone to the right.
+        public void Drone_turnRight(double angle)
+        {
+            // Calculate the target angle
+            double initYaw = MainV2.comPort.MAV.cs.yaw;
+            double turnedAngle = 0;
+            while (turnedAngle < angle)
+            {
+                SendRC(4, 1550, true);
+                System.Threading.Thread.Sleep(500);
+                SendRC(4, 1500, true);
+                // Check if we turned over 360 degrees.
+                double currentYaw = MainV2.comPort.MAV.cs.yaw;
+                if (currentYaw < initYaw)
+                {
+                    turnedAngle += 360 - initYaw + currentYaw;
+                } else {
+                    turnedAngle += currentYaw - initYaw;
+                }
+                initYaw = currentYaw;
+            }
+        }
+
+        // Move drone up.
+        public void Drone_moveUp(double height)
+        {
+            // Change the flight mode to stabilize.
+            MainV2.comPort.setMode("STABILIZE");
+            while (MainV2.comPort.MAV.cs.alt < height)
+            {
+                SendRC(3, 1455, true);
+            }
+            SendRC(3, 1425, true);
+            MainV2.comPort.setMode("ALTHOLD");
+        }
+
+        // Move drone down.
+        public void Drone_moveDown(double height)
+        {
+            // Change the flight mode to stabilize.
+            MainV2.comPort.setMode("STABILIZE");
+            while (MainV2.comPort.MAV.cs.alt > height)
+            {
+                SendRC(3, 1395, true);
+            }
+            SendRC(3, 1425, true);
+            MainV2.comPort.setMode("ALTHOLD");
+        }
+
+        // Takeoff function.
+        public void Drone_takeOff(double height)
+        {
+            var requestHeight = MainV2.comPort.MAV.cs.alt + height;
+            // Change to armable mode.
+            MainV2.comPort.setMode("STABILIZE");
+            // Try to arm the motors.
+            if (MainV2.comPort.doARM(true))
+            {
+                // Motors armed, we can lift the drone.
+                Drone_moveUp(requestHeight);
+            }
+        }
+
         #endregion
 
-        // Generate new route, so draw it on Map.
-        void ga_OnGenerationComplete(object sender, GAF.GaEventArgs e)
+        private void myButton2_Click(object sender, EventArgs e)
         {
-            var fittest = e.Population.GetTop(1)[0];
-            var distanceToTravel = CalculateDistance(fittest);
-            DrawTSPRoute(fittest.Genes);
-        }
-
-        // Calculate total route distance.
-        private static double CalculateDistance(GAF.Chromosome chromosome)
-        {
-            var distanceToTravel = 0.0;
-            ContainerCity previousContainer = null;
-            // run through each container in the order specified in the chromosome
-            foreach (var gene in chromosome.Genes)
+            // Do some sort of commands
+            try
             {
-                var currentContainer = _targets[(int)gene.RealValue];
-
-                if (previousContainer != null)
-                {
-                    var distance = previousContainer.GetDistanceFromPosition(currentContainer.X, currentContainer.Y);
-                    distanceToTravel += distance;
-                }
-                previousContainer = currentContainer;
+                MainV2.comPort.doARM(true);
+                Drone_takeOff(20);
+                Drone_moveDown(10);
+                Drone_moveUp(20);
             }
-            return distanceToTravel;
-        }
-        
-        // calculate the fitness of the route.
-        public static double CalculateFitness(GAF.Chromosome chromosome)
-        {
-            var distanceToTravel = CalculateDistance(chromosome);
-            return 1 - distanceToTravel / 10000;
-        }
-        
-        // Create target points for the travelling salesman problem.
-        public static IEnumerable<ContainerCity> CreateTargets(Vessel cargo)
-        {
-            var targets = new List<ContainerCity>();
-            var selectedContainers = cargo.ContainersList.FindAll(x => x.Selected && x.containerLoaded);
-            foreach (var container in selectedContainers)
-            {
-                targets.Add(new ContainerCity(container.Name, container.X, container.Y, container.Z, container.Bay, container.Row));
+            catch { 
+                CustomMessageBox.Show("Invalid command");             
             }
-            return targets;
-        }
-
-        // Restart the games on track system.
-        private void myButton1_Click(object sender, EventArgs e)
-        {
-            if (this.gotMaster != null && this.gotMaster.Status != MasterStatus.Offline)
-            {
-                this.gotMaster.RequestRestart();
-                this.ConnectedReceivers.Clear();
-                this.receiversList.Items.Clear();
-                this.transmittersList.Items.Clear();
-                this.ConnectedTransmitters.Clear();
-            }
+            //read
+            ///////MainV2.comPort.doCommand(MAVLink09.MAV_CMD.PREFLIGHT_STORAGE, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         }
 
 
